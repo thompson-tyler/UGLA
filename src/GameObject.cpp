@@ -19,11 +19,11 @@ void GameObject::render(sf::RenderWindow& window)
 {
 	this->sprite.setPosition(cornerAsSFMLCoords());
 
-	// int r = -velocity.y * 20;
+	// int r = -velocity.y * 100;
 	// if (r < 0) r = 0;
 	// if (r > 255) r = 255;
 
-	// int g = velocity.y * 20;
+	// int g = velocity.y * 30;
 	// if (g < 0) g = 0;
 	// if (g > 255) g = 255;
 	// this->sprite.setFillColor(sf::Color(r, g, 0));

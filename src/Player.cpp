@@ -8,6 +8,7 @@ Player::Player() :
 {
 	this->sprite.setFillColor(PLAYER_COLOR);
 	onGround = false;
+	inWater = false;
 	isDiving = false;
 	facingRight = true;
 }
@@ -34,7 +35,7 @@ void Player::moveLeft(float dt)
 
 void Player::jump()
 {
-	if (onGround)
+	if ((onGround or inWater) and !isDiving)
 	{
 		velocity.y = JUMP_VEL;
 	}
@@ -83,12 +84,16 @@ void Player::update(float dt)
 			velocity.x = 0;
 	}
 
-	//		VERTICAL MOVEMENT
-
 	// apply gravity
 	velocity.y -= (isDiving ? DIVE_COEFF : 1) * G * dt;
 	if (velocity.y < -MAX_FALL_SPEED)
 		velocity.y = -MAX_FALL_SPEED;
+
+	if (inWater)
+	{
+		velocity.x *= 0.9;
+		velocity.y *= 0.9;
+	}
 
 	position += velocity * dt;
 

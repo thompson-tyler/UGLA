@@ -7,8 +7,8 @@
 enum Material
 {
 	STONE,
-	DIRT,
 	SAND,
+	WATER,
 };
 
 class Tile : public GameObject

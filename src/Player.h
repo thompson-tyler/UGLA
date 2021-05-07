@@ -15,6 +15,7 @@ public:
 	void jump();
 	void dive();
 	bool onGround;
+	bool inWater;
 	bool isDiving;
 	bool facingRight;
 

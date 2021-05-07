@@ -20,6 +20,10 @@ EntityManager::EntityManager()
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
+			else if (TILES_X / 2 - 30 < x and x < TILES_X / 2 and 70 < y and y < 80)
+			{
+				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
+			}
 			else
 			{
 				tiles[y][x] = nullptr;
@@ -150,8 +154,8 @@ void EntityManager::initTileColors()
 					case SAND:
 						color = SAND_COLOR;
 						break;
-					case DIRT:
-						color = sf::Color::Red;
+					case WATER:
+						color = WATER_COLOR;
 						break;
 					default:
 						color = sf::Color::White;
@@ -236,7 +240,7 @@ void EntityManager::updateRipple()
 			// base tile is not ground, iterate down to find surface
 			if (tiles[maxTileY][x] == nullptr)
 			{
-				while (validPos(x, maxTileY - 1) and tiles[maxTileY][x] == nullptr)
+				while (validPos(x, maxTileY - 1) and (tiles[maxTileY][x] == nullptr or !earthBendable(tiles[maxTileY][x])))
 				{
 					maxTileY--;
 				}
@@ -244,7 +248,7 @@ void EntityManager::updateRipple()
 			// base tile is ground, iterate up to surface
 			else
 			{
-				while (validPos(x, maxTileY + 1) and tiles[maxTileY + 1][x] != nullptr)
+				while (validPos(x, maxTileY + 1) and (tiles[maxTileY + 1][x] != nullptr and earthBendable(tiles[maxTileY + 1][x])))
 				{
 					maxTileY++;
 				}
@@ -294,9 +298,9 @@ void EntityManager::raiseGround()
 				continue;
 
 			// base tile is not ground, iterate down to find surface
-			if (tiles[maxTileY][x] == nullptr)
+			if (tiles[maxTileY][x] == nullptr or !earthBendable(tiles[maxTileY][x]))
 			{
-				while (validPos(x, maxTileY - 1) and tiles[maxTileY][x] == nullptr)
+				while (validPos(x, maxTileY - 1) and (tiles[maxTileY][x] == nullptr or !earthBendable(tiles[maxTileY][x])))
 				{
 					maxTileY--;
 				}
@@ -304,7 +308,7 @@ void EntityManager::raiseGround()
 			// base tile is ground, iterate up to surface
 			else
 			{
-				while (validPos(x, maxTileY + 1) and tiles[maxTileY + 1][x] != nullptr)
+				while (validPos(x, maxTileY + 1) and (tiles[maxTileY + 1][x] != nullptr and earthBendable(tiles[maxTileY + 1][x])))
 				{
 					maxTileY++;
 				}
@@ -322,9 +326,10 @@ void EntityManager::raiseGround()
 
 			for (int y = minTileY; y <= maxTileY; y++)
 			{
-				if (validPos(x, y) and tiles[y][x] != nullptr)
+				Tile* currTile = tiles[y][x];
+				if (validPos(x, y) and currTile != nullptr and earthBendable(currTile))
 				{
-					tiles[y][x]->velocity.y = RAISE_BOULDER_SIZE + playerHeightOff + (maxTileY - y);
+					currTile->velocity.y = RAISE_BOULDER_SIZE + playerHeightOff + (maxTileY - y);
 				}
 			}
 		}
@@ -351,9 +356,10 @@ void EntityManager::pushTiles(int direction)
 	{
 		for (int x = minTileX; x != maxTileX; x += direction)
 		{
-			if (tiles[y][x] != nullptr)
+			Tile* currTile = tiles[y][x];
+			if (currTile != nullptr and earthBendable(currTile))
 			{
-				tiles[y][x]->velocity = { direction * PUSH_VELOCITY, 0 };
+				currTile->velocity = { direction * PUSH_VELOCITY, 0 };
 			}
 		}
 	}
@@ -371,7 +377,7 @@ bool EntityManager::validPos(int x, int y)
 
 int EntityManager::signOf(int n)
 {
-	return (n > 0 ? 1 : -1);
+	return (n == 0 ? 0 : (n > 0 ? 1 : -1));
 }
 
 float EntityManager::clamp(float n, float min, float max)
@@ -383,15 +389,44 @@ float EntityManager::clamp(float n, float min, float max)
 	return n;
 }
 
+bool EntityManager::earthBendable(Tile* tile)
+{
+	if (tile == nullptr)
+		return false;
+	return (tile->material == STONE or tile->material == SAND);
+}
+
 void EntityManager::moveTileTo(int xi, int yi, int xf, int yf)
 {
 	if (validPos(xi, yi) and validPos(xf, yf) and tiles[yi][xi] != nullptr and tiles[yf][xf] == nullptr)
 	{
-		tiles[yi][xi]->position.x += (xf - xi) * U_P;
-		tiles[yi][xi]->position.y += (yf - yi) * U_P;
+		tiles[yi][xi]->position = { (xf + 0.5f) * U_P, (yf + 0.5f) * U_P };
 		tiles[yi][xi]->hasMoved = true;
 		tiles[yf][xf] = tiles[yi][xi];
 		tiles[yi][xi] = nullptr;
+	}
+}
+
+void EntityManager::switchTiles(int x1, int y1, int x2, int y2)
+{
+	if (validPos(x1, y1) and validPos(x2, y2))
+	{
+		// switch tiles
+		Tile* tempTile = tiles[y2][x2];
+		tiles[y2][x2] = tiles[y1][x1];
+		tiles[y1][x1] = tempTile;
+
+		// update locations and move states
+		if (tiles[y1][x1] != nullptr)
+		{
+			tiles[y1][x1]->position = { (x1 + 0.5f) * U_P, (y1 + 0.5f) * U_P };
+			tiles[y1][x1]->hasMoved = true;
+		}
+		if (tiles[y2][x2] != nullptr)
+		{
+			tiles[y2][x2]->position = { (x2 + 0.5f) * U_P, (y2 + 0.5f) * U_P };
+			tiles[y2][x2]->hasMoved = true;
+		}
 	}
 }
 
@@ -417,7 +452,7 @@ void EntityManager::doBlockUpdates()
 			if (currTile != nullptr and currTile->velocity.x == 0 and currTile->velocity.y <= 0)
 			{
 				// apply gravity if below tile is empty or falling
-				if (tiles[y - 1][x] == nullptr or tiles[y - 1][x]->velocity.y < 0)
+				if (tiles[y - 1][x] == nullptr or (tiles[y - 1][x]->material == WATER and currTile->material != WATER) or tiles[y - 1][x]->velocity.y < 0)
 				{
 					tiles[y][x]->velocity.y--;
 				}
@@ -440,7 +475,7 @@ void EntityManager::doBlockUpdates()
 
 					if (validPos(x + sign, y))
 					{
-						if (tiles[y][x + sign] != nullptr and (tiles[y][x + sign]->velocity.x == 0 or signOf(tiles[y][x + sign]->velocity.x) != sign))
+						if (tiles[y][x + sign] != nullptr and signOf(tiles[y][x + sign]->velocity.x) != sign and tiles[y][x + sign]->material != WATER)
 						{
 							currTile->velocity.x = 0;
 						}
@@ -457,7 +492,7 @@ void EntityManager::doBlockUpdates()
 
 					if (validPos(x, y + sign))
 					{
-						if (tiles[y + sign][x] != nullptr and (tiles[y + sign][x]->velocity.y == 0 or signOf(tiles[y + sign][x]->velocity.y) != sign))
+						if (tiles[y + sign][x] != nullptr and signOf(tiles[y + sign][x]->velocity.y) != sign and (tiles[y + sign][x]->material != WATER or (currTile->material == WATER and tiles[y + sign][x]->material == WATER)))
 						{
 							if (sign == 1)
 								currTile->velocity.y -= sign;
@@ -493,10 +528,10 @@ void EntityManager::doBlockUpdates()
 						int sign = signOf(currTile->velocity.x);
 
 						// if tile can physically move to desired side, move it
-						if (validPos(x + sign, y) and tiles[y][x + sign] == nullptr)
+						if (validPos(x + sign, y) and (tiles[y][x + sign] == nullptr or (tiles[y][x + sign]->material == WATER and currTile->material != WATER)))
 						{
 							currTile->velocity.x -= sign;
-							moveTileTo(x, y, x + sign, y);
+							switchTiles(x, y, x + sign, y);
 							movedTile = true;
 						}
 					}
@@ -506,21 +541,34 @@ void EntityManager::doBlockUpdates()
 						int sign = signOf(currTile->velocity.y);
 
 						// if tile can physically move to desired side, move it
-						if (validPos(x, y + sign) and tiles[y + sign][x] == nullptr)
+						if (validPos(x, y + sign) and (tiles[y + sign][x] == nullptr or (tiles[y + sign][x]->material == WATER and currTile->material != WATER)))
 						{
 							currTile->velocity.y -= sign;
-							moveTileTo(x, y, x, y + sign);
+							switchTiles(x, y, x, y + sign);
 							movedTile = true;
 						}
 					}
 					// sand movement -> fall to diagonals if they're empty
-					else if (currTile->material == SAND)
+					else if (currTile->material == SAND or currTile->material == WATER)
 					{
 						for (int sign : { -1, 1 })
 						{
-							if (validPos(x + sign, y - 1) and tiles[y - 1][x + sign] == nullptr)
+							if (validPos(x + sign, y - 1) and (tiles[y - 1][x + sign] == nullptr or (tiles[y - 1][x + sign]->material == WATER and currTile->material != WATER)))
 							{
-								moveTileTo(x, y, x + sign, y - 1);
+								switchTiles(x, y, x + sign, y - 1);
+								movedTile = true;
+							}
+						}
+						// water movement -> move to side if empty
+						if (currTile->material == WATER)
+						{
+							for (int sign : { -1, 1 })
+							{
+								if (validPos(x + sign, y) and tiles[y][x + sign] == nullptr)
+								{
+									switchTiles(x, y, x + sign, y);
+									movedTile = true;
+								}
 							}
 						}
 					}
@@ -536,6 +584,7 @@ void EntityManager::checkPlayerTileCollision()
 	float dx, dy, dxMin, dyMin;
 
 	player->onGround = false;
+	player->inWater = false;
 
 	// only check a small region around player for collisions
 	int minTileX = (player->position.x - player->size.x / 2) / U_P;
@@ -562,7 +611,10 @@ void EntityManager::checkPlayerTileCollision()
 				currTile = tiles[y][x];
 				if (currTile != nullptr)
 				{
-					overlappingTiles++;
+					if (currTile->material != WATER)
+						overlappingTiles++;
+					else
+						player->inWater = true;
 				}
 			}
 		}
@@ -581,9 +633,8 @@ void EntityManager::checkPlayerTileCollision()
 		{
 			currTile = tiles[y][x];
 
-			if (currTile != nullptr)
+			if (currTile != nullptr and currTile->material != WATER)
 			{
-
 				dx = abs(player->position.x - currTile->position.x);
 				dy = abs(player->position.y - currTile->position.y);
 				dxMin = (player->size.x + U_P) / 2;
@@ -603,7 +654,7 @@ void EntityManager::checkPlayerTileCollision()
 						int sign = (player->position.x > currTile->position.x ? 1 : -1);
 						sx *= sign;
 
-						if (tiles[y][x + sign] == nullptr)
+						if (tiles[y][x + sign] == nullptr or tiles[y][x + sign]->material == WATER)
 						{
 							// checks if player is approaching a one-tile high wall and steps over it
 							bool canStep = currTile->position.y - U_P / 2 <= player->position.y - player->size.y / 2;
@@ -613,7 +664,7 @@ void EntityManager::checkPlayerTileCollision()
 								// makes sure there is room for the player above step
 								for (int i = 1; i <= player->size.y / U_P; i++)
 								{
-									if (tiles[y + i][x] != nullptr)
+									if (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER)
 									{
 										canStep = false;
 										break;
@@ -644,7 +695,7 @@ void EntityManager::checkPlayerTileCollision()
 						sy *= sign;
 
 						// check that player could have realistically contacted tile
-						if (tiles[y + sign][x] == nullptr)
+						if (tiles[y + sign][x] == nullptr or tiles[y + sign][x]->material == WATER)
 						{
 							if (sign == 1 and player->velocity.y <= 0)
 							{

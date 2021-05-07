@@ -39,9 +39,10 @@ const int RAISE_BOULDER_SIZE = 5;
 const float PUSH_VELOCITY = 20.f;
 
 // COLORS
-const sf::Color BACKGROUND_COLOR = sf::Color(244, 233, 205);
-const sf::Color PLAYER_COLOR = sf::Color(151, 77, 65);
-const sf::Color STONE_COLOR = sf::Color(75, 78, 75);
-const sf::Color SAND_COLOR = sf::Color(218, 181, 107);
+const sf::Color BACKGROUND_COLOR = sf::Color(244, 233, 205),
+				PLAYER_COLOR = sf::Color(151, 77, 65),
+				STONE_COLOR = sf::Color(75, 78, 75),
+				SAND_COLOR = sf::Color(218, 181, 107),
+				WATER_COLOR = sf::Color(74, 136, 217, 50);
 
 #endif
