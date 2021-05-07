@@ -1,14 +1,12 @@
-#include <GameObject.h>
+#include <Entity.h>
 #include <Player.h>
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
 Player::Player() :
-	GameObject(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.2, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } })
+	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.5, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } })
 {
 	this->sprite.setFillColor(PLAYER_COLOR);
-	onGround = false;
-	inWater = false;
 	isDiving = false;
 	facingRight = true;
 }

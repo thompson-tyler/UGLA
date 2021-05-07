@@ -10,11 +10,6 @@ GameObject::GameObject(float x, float y, sf::RectangleShape sprite)
 	this->velocity = { 0, 0 };
 }
 
-void GameObject::update(float dt)
-{
-	position += velocity * dt;
-}
-
 void GameObject::render(sf::RenderWindow& window)
 {
 	this->sprite.setPosition(cornerAsSFMLCoords());

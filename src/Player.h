@@ -1,11 +1,11 @@
 #ifndef PLAYER_H
 #include <Constants.h>
-#include <GameObject.h>
+#include <Entity.h>
 #include <SFML/Window.hpp>
 #include <Tile.h>
 #define PLAYER_H
 
-class Player : public GameObject
+class Player : public Entity
 {
 public:
 	Player();
@@ -14,12 +14,8 @@ public:
 	void moveLeft(float dt);
 	void jump();
 	void dive();
-	bool onGround;
-	bool inWater;
 	bool isDiving;
 	bool facingRight;
-
-private:
 };
 
 #endif
