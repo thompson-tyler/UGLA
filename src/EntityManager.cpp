@@ -1,19 +1,21 @@
 #include <EntityManager.h>
+#include <OpenSimplexNoise.hpp>
 #include <cmath>
 #include <iostream>
 
 EntityManager::EntityManager()
 {
-	for (int y = 0; y < WIN_TILES_Y; y++)
+	for (int y = 0; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < WIN_TILES_X; x++)
+		for (int x = 0; x < TILES_X; x++)
 		{
-			// if (y < 2 + pow(x - WIN_TILES_X / 2, 2) / 30)
-			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < WIN_TILES_Y - 5 and x > 30))
-			if (y < 8 * sin(x / 6.f) + 16)
-			// if (y < 20)
+			// if (y < 2 + pow(x - TILES_X / 2, 2) / 30)
+			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
+			// if (y < 10 * sin(x / 10.f) + 50)
+			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
+			// if (y < 50)
 			{
-				if (y > 5 and y < 15)
+				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
@@ -24,6 +26,8 @@ EntityManager::EntityManager()
 			}
 		}
 	}
+	initTileColors();
+
 	updateTimer = 0;
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
@@ -32,63 +36,13 @@ EntityManager::EntityManager()
 
 EntityManager::~EntityManager()
 {
-	for (int y = 0; y < WIN_TILES_Y; y++)
+	for (int y = 0; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < WIN_TILES_X; x++)
+		for (int x = 0; x < TILES_X; x++)
 		{
 			delete tiles[y][x];
 		}
 	}
-}
-
-void EntityManager::zoomIn()
-{
-	viewScale -= 0.1;
-	if (viewScale < 0.2)
-	{
-		viewScale = 0.2;
-	}
-}
-
-void EntityManager::zoomOut()
-{
-	viewScale += 0.1;
-	if (viewScale > 1)
-	{
-		viewScale = 1;
-	}
-}
-
-void EntityManager::render(sf::RenderWindow& window)
-{
-	sf::Vector2f viewSize { WIN_SIZE.x * viewScale, WIN_SIZE.y * viewScale };
-	sf::Vector2f viewCenter = player->centerAsSFMLCoords();
-
-	if (viewCenter.x < viewSize.x / 2)
-		viewCenter.x = viewSize.x / 2;
-	else if (viewCenter.x > WIN_SIZE.x - viewSize.x / 2)
-		viewCenter.x = WIN_SIZE.x - viewSize.x / 2;
-
-	if (viewCenter.y < viewSize.y / 2)
-		viewCenter.y = viewSize.y / 2;
-	else if (viewCenter.y > WIN_SIZE.y - viewSize.y / 2)
-		viewCenter.y = WIN_SIZE.y - viewSize.y / 2;
-
-	sf::View view { viewCenter, viewSize };
-
-	window.setView(view);
-
-	for (int y = 0; y < WIN_TILES_Y; y++)
-	{
-		for (int x = 0; x < WIN_TILES_X; x++)
-		{
-			if (tiles[y][x] != nullptr)
-			{
-				tiles[y][x]->render(window);
-			}
-		}
-	}
-	player->render(window);
 }
 
 void EntityManager::update(float dt)
@@ -114,9 +68,107 @@ void EntityManager::update(float dt)
 	}
 }
 
+void EntityManager::render(sf::RenderWindow& window)
+{
+	sf::Vector2f viewSize { WIN_SIZE.x * viewScale, WIN_SIZE.y * viewScale };
+	sf::Vector2f viewCenter = player->centerAsSFMLCoords();
+
+	viewCenter.x = clamp(viewCenter.x, viewSize.x / 2, WORLD_SIZE.x - viewSize.x / 2);
+
+	viewCenter.y = clamp(viewCenter.y, viewSize.y / 2, WORLD_SIZE.y - viewSize.y / 2);
+
+	sf::View view { viewCenter, viewSize };
+
+	window.setView(view);
+
+	// getting bounds for render, only rendering tiles in the viewport
+	int minVisibleTilesX = (viewCenter.x - viewSize.x / 2) / U_P;
+	if (minVisibleTilesX < 0)
+		minVisibleTilesX = 0;
+	int maxVisibleTilesX = (viewCenter.x + viewSize.x / 2) / U_P;
+	if (maxVisibleTilesX > TILES_X - 1)
+		maxVisibleTilesX = TILES_X - 1;
+	int minVisibleTilesY = TILES_Y - (viewCenter.y + viewSize.y / 2) / U_P;
+	if (minVisibleTilesY < 0)
+		minVisibleTilesY = 0;
+	int maxVisibleTilesY = TILES_Y - (viewCenter.y - viewSize.y / 2) / U_P;
+	if (maxVisibleTilesY > TILES_Y - 1)
+		maxVisibleTilesY = TILES_Y - 1;
+
+	for (int y = minVisibleTilesY; y <= maxVisibleTilesY; y++)
+	{
+		for (int x = minVisibleTilesX; x <= maxVisibleTilesX; x++)
+		{
+			if (tiles[y][x] != nullptr)
+			{
+				tiles[y][x]->render(window);
+			}
+		}
+	}
+	player->render(window);
+}
+
+void EntityManager::zoomIn()
+{
+	viewScale -= 0.1f;
+	if (viewScale < 0.2)
+		viewScale = 0.2f;
+}
+
+void EntityManager::zoomOut()
+{
+	viewScale += 0.1f;
+	if (WIN_SIZE.x * viewScale > WORLD_SIZE.x)
+		viewScale = WORLD_SIZE.x / WIN_SIZE.x;
+	if (WIN_SIZE.y * viewScale > WORLD_SIZE.y)
+		viewScale = WORLD_SIZE.y / WIN_SIZE.y;
+}
+
 void EntityManager::setPlayer(Player& player)
 {
 	this->player = &player;
+}
+
+void EntityManager::initTileColors()
+{
+	OpenSimplexNoise noise;
+
+	for (int x = 0; x < TILES_X; x++)
+	{
+		for (int y = 0; y < TILES_Y; y++)
+		{
+			Tile* currTile = tiles[y][x];
+			if (currTile != nullptr)
+			{
+				sf::Color color;
+
+				switch (currTile->material)
+				{
+					case STONE:
+						color = STONE_COLOR;
+						break;
+					case SAND:
+						color = SAND_COLOR;
+						break;
+					case DIRT:
+						color = sf::Color::Red;
+						break;
+					default:
+						color = sf::Color::White;
+						break;
+				}
+
+				float grain = 0.5f;
+				float rand = 8 * noise.Evaluate(x * grain, y * grain, 0);
+
+				color.r += rand;
+				color.g += rand;
+				color.b += rand;
+
+				currTile->sprite.setFillColor(color);
+			}
+		}
+	}
 }
 
 void EntityManager::groundJump()
@@ -129,16 +181,16 @@ void EntityManager::groundJump()
 			minTileX = 0;
 
 		int maxTileX = (player->position.x + player->size.x) / U_P;
-		if (maxTileX > WIN_TILES_X)
-			maxTileX = WIN_TILES_X;
+		if (maxTileX > TILES_X)
+			maxTileX = TILES_X;
 
 		int minTileY = (player->position.y - player->size.y) / U_P - GROUND_JUMP_COL_HEIGHT;
 		if (minTileY < 1)
 			minTileY = 1;
 
 		int maxTileY = (player->position.y - player->size.y / 2) / U_P;
-		if (maxTileY > WIN_TILES_Y)
-			maxTileY = WIN_TILES_Y;
+		if (maxTileY > TILES_Y)
+			maxTileY = TILES_Y;
 
 		for (int y = minTileY; y < maxTileY; y++)
 		{
@@ -229,18 +281,12 @@ void EntityManager::raiseGround()
 
 		// get tile selection in front of player
 		int minTileX = centerX - RAISE_BOULDER_SIZE / 2;
-		if (minTileX >= WIN_TILES_X)
-			minTileX = WIN_TILES_X;
-		else if (minTileX < 0)
-			minTileX = 0;
+		minTileX = clamp(minTileX, 0, TILES_X);
 
-		int maxTileX = centerX + RAISE_BOULDER_SIZE / 2;
-		if (maxTileX >= WIN_TILES_X)
-			maxTileX = WIN_TILES_X - 1;
-		else if (maxTileX < 0)
-			maxTileX = 0;
+		int maxTileX = centerX + RAISE_BOULDER_SIZE / 2 + 1;
+		maxTileX = clamp(maxTileX, 0, TILES_X);
 
-		for (int x = minTileX; x <= maxTileX; x++)
+		for (int x = minTileX; x < maxTileX; x++)
 		{
 			int maxTileY = player->position.y / U_P;
 
@@ -278,7 +324,7 @@ void EntityManager::raiseGround()
 			{
 				if (validPos(x, y) and tiles[y][x] != nullptr)
 				{
-					tiles[y][x]->velocity.y = (RAISE_BOULDER_SIZE + 3) + playerHeightOff;
+					tiles[y][x]->velocity.y = RAISE_BOULDER_SIZE + playerHeightOff + (maxTileY - y);
 				}
 			}
 		}
@@ -290,22 +336,22 @@ void EntityManager::pushTiles(int direction)
 {
 	// get tile selection in front of player
 	int minTileX = player->position.x / U_P;
+	minTileX = clamp(minTileX, 0, TILES_X);
 
 	int maxTileX = minTileX + direction * 16;
+	maxTileX = clamp(maxTileX, 0, TILES_X);
 
 	int minTileY = (player->position.y - player->size.y / 2) / U_P;
-	if (minTileY < 1)
-		minTileY = 1;
+	minTileY = clamp(minTileY, 1, TILES_Y);
 
 	int maxTileY = minTileY + 8;
-	if (maxTileY > WIN_TILES_Y)
-		maxTileY = WIN_TILES_Y;
+	maxTileY = clamp(maxTileY, 1, TILES_Y);
 
 	for (int y = minTileY; y < maxTileY; y++)
 	{
 		for (int x = minTileX; x != maxTileX; x += direction)
 		{
-			if (validPos(x, y) and tiles[y][x] != nullptr)
+			if (tiles[y][x] != nullptr)
 			{
 				tiles[y][x]->velocity = { direction * PUSH_VELOCITY, 0 };
 			}
@@ -315,17 +361,26 @@ void EntityManager::pushTiles(int direction)
 
 bool EntityManager::playerOnScreen()
 {
-	return (player->position.x - player->size.x / 2 >= 0 and player->position.x + player->size.x / 2 <= WIN_SIZE.x) and (player->position.y - player->size.y / 2 >= 0 and player->position.y + player->size.y / 2 <= WIN_SIZE.y);
+	return (player->position.x - player->size.x / 2 >= 0 and player->position.x + player->size.x / 2 <= WORLD_SIZE.x) and (player->position.y - player->size.y / 2 >= 0 and player->position.y + player->size.y / 2 <= WORLD_SIZE.y);
 }
 
 bool EntityManager::validPos(int x, int y)
 {
-	return (0 <= x and x < WIN_TILES_X and 0 <= y and y < WIN_TILES_Y);
+	return (0 <= x and x < TILES_X and 0 <= y and y < TILES_Y);
 }
 
 int EntityManager::signOf(int n)
 {
 	return (n > 0 ? 1 : -1);
+}
+
+float EntityManager::clamp(float n, float min, float max)
+{
+	if (n < min)
+		return min;
+	if (n > max)
+		return max;
+	return n;
 }
 
 void EntityManager::moveTileTo(int xi, int yi, int xf, int yf)
@@ -342,9 +397,9 @@ void EntityManager::moveTileTo(int xi, int yi, int xf, int yf)
 
 void EntityManager::doBlockUpdates()
 {
-	for (int y = 1; y < WIN_TILES_Y; y++)
+	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < WIN_TILES_X; x++)
+		for (int x = 0; x < TILES_X; x++)
 		{
 			if (tiles[y][x] != nullptr)
 			{
@@ -354,9 +409,9 @@ void EntityManager::doBlockUpdates()
 	}
 
 	// gravity check
-	for (int y = 1; y < WIN_TILES_Y; y++)
+	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < WIN_TILES_X; x++)
+		for (int x = 0; x < TILES_X; x++)
 		{
 			Tile* currTile = tiles[y][x];
 			if (currTile != nullptr and currTile->velocity.x == 0 and currTile->velocity.y <= 0)
@@ -371,9 +426,9 @@ void EntityManager::doBlockUpdates()
 	}
 
 	// stopping check
-	for (int y = 1; y < WIN_TILES_Y; y++)
+	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < WIN_TILES_X; x++)
+		for (int x = 0; x < TILES_X; x++)
 		{
 			Tile* currTile = tiles[y][x];
 			if (currTile != nullptr)
@@ -425,9 +480,9 @@ void EntityManager::doBlockUpdates()
 	{
 		movedTile = false;
 
-		for (int y = 1; y < WIN_TILES_Y; y++)
+		for (int y = 1; y < TILES_Y; y++)
 		{
-			for (int x = 0; x < WIN_TILES_X; x++)
+			for (int x = 0; x < TILES_X; x++)
 			{
 				Tile* currTile = tiles[y][x];
 				if (currTile != nullptr and !currTile->hasMoved)
@@ -487,14 +542,14 @@ void EntityManager::checkPlayerTileCollision()
 	if (minTileX < 0)
 		minTileX = 0;
 	int maxTileX = (player->position.x + player->size.x) / U_P;
-	if (maxTileX > WIN_TILES_X)
-		maxTileX = WIN_TILES_X;
+	if (maxTileX > TILES_X)
+		maxTileX = TILES_X;
 	int minTileY = (player->position.y - player->size.y / 2) / U_P;
 	if (minTileY < 0)
 		minTileY = 0;
 	int maxTileY = (player->position.y + player->size.y) / U_P;
-	if (maxTileY > WIN_TILES_Y)
-		maxTileY = WIN_TILES_Y;
+	if (maxTileY > TILES_Y)
+		maxTileY = TILES_Y;
 
 	if (playerOnScreen())
 	{
@@ -513,7 +568,7 @@ void EntityManager::checkPlayerTileCollision()
 		}
 
 		// if more than 80% of player is buried in tiles, push them up
-		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.8)
+		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
 		{
 			player->position.y += player->size.y;
 		}

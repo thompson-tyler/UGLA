@@ -21,15 +21,17 @@ public:
 	void zoomOut();
 
 	Player* player;
-	Tile* tiles[WIN_TILES_Y][WIN_TILES_X];
+	Tile* tiles[TILES_Y][TILES_X];
 	void doBlockUpdates();
 
 private:
 	float updateTimer, blockGravTimer;
+	void initTileColors();
 	void checkPlayerTileCollision();
 	bool playerOnScreen();
 	bool validPos(int x, int y);
 	int signOf(int n);
+	float clamp(float n, float min, float max);
 	void moveTileTo(int xi, int yi, int xf, int yf);
 	void updateRipple();
 

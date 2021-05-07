@@ -9,7 +9,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(WIN_SIZE.x, 600), "UGLA", sf::Style::Close);
+	sf::RenderWindow window(sf::VideoMode(WIN_SIZE.x, WIN_SIZE.y), "UGLA", sf::Style::Close);
 	window.setKeyRepeatEnabled(false);
 	// window.setFramerateLimit(60);
 	// window.setVerticalSyncEnabled(true);
@@ -43,25 +43,25 @@ int main()
 						case DIVE_KEY:
 							player.dive();
 							break;
-						case sf::Keyboard::Space:
+						case GROUND_JUMP_KEY:
 							eMan.groundJump();
 							break;
-						case sf::Keyboard::Up:
+						case RAISE_GROUND_KEY:
 							eMan.raiseGround();
 							break;
-						case sf::Keyboard::Left:
+						case PUSH_GROUND_LEFT_KEY:
 							eMan.pushTiles(-1);
 							break;
-						case sf::Keyboard::Right:
+						case PUSH_GROUND_RIGHT_KEY:
 							eMan.pushTiles(1);
 							break;
-						case sf::Keyboard::Hyphen:
+						case ZOOM_OUT_KEY:
 							eMan.zoomOut();
 							break;
-						case sf::Keyboard::Equal:
+						case ZOOM_IN_KEY:
 							eMan.zoomIn();
 							break;
-						case sf::Keyboard::Escape:
+						case EXIT_KEY:
 							window.close();
 							break;
 						default:
@@ -84,8 +84,8 @@ int main()
 		{
 			renderTime -= FRAME_DURATION;
 
-			// clear window with black color
-			window.clear(sf::Color(244, 233, 205));
+			// clear window with background color
+			window.clear(BACKGROUND_COLOR);
 
 			// render game objects
 			eMan.render(window);

@@ -4,9 +4,9 @@
 #include <cmath>
 
 Player::Player() :
-	GameObject(WIN_SIZE.x / 2, WIN_SIZE.y * 0.2, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } })
+	GameObject(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.2, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } })
 {
-	this->sprite.setFillColor(sf::Color(151, 77, 65));
+	this->sprite.setFillColor(PLAYER_COLOR);
 	onGround = false;
 	isDiving = false;
 	facingRight = true;
@@ -92,9 +92,9 @@ void Player::update(float dt)
 
 	position += velocity * dt;
 
-	if (position.x > WIN_SIZE.x - size.x / 2)
+	if (position.x > WORLD_SIZE.x - size.x / 2)
 	{
-		position.x = WIN_SIZE.x - size.x / 2;
+		position.x = WORLD_SIZE.x - size.x / 2;
 		velocity.x = 0;
 	}
 	else if (position.x < size.x / 2)

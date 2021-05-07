@@ -33,10 +33,10 @@ void GameObject::render(sf::RenderWindow& window)
 
 sf::Vector2f GameObject::cornerAsSFMLCoords()
 {
-	return { position.x - size.x / 2, WIN_SIZE.y - (position.y + size.y / 2) };
+	return { position.x - size.x / 2, WORLD_SIZE.y - (position.y + size.y / 2) };
 }
 
 sf::Vector2f GameObject::centerAsSFMLCoords()
 {
-	return { position.x, WIN_SIZE.y - position.y };
+	return { position.x, WORLD_SIZE.y - position.y };
 }
