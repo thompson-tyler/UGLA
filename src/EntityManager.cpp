@@ -365,9 +365,9 @@ void EntityManager::pushTiles(int direction)
 	}
 }
 
-bool EntityManager::playerOnScreen()
+bool EntityManager::entityOnScreen(Entity* entity)
 {
-	return (player->position.x - player->size.x / 2 >= 0 and player->position.x + player->size.x / 2 <= WORLD_SIZE.x) and (player->position.y - player->size.y / 2 >= 0 and player->position.y + player->size.y / 2 <= WORLD_SIZE.y);
+	return (entity->position.x - entity->size.x / 2 >= 0 and entity->position.x + entity->size.x / 2 <= WORLD_SIZE.x) and (entity->position.y - player->size.y / 2 >= 0 and player->position.y + player->size.y / 2 <= WORLD_SIZE.y);
 }
 
 bool EntityManager::validPos(int x, int y)
@@ -578,6 +578,140 @@ void EntityManager::doBlockUpdates()
 	} while (movedTile);
 }
 
+void EntityManager::checkEntityTileCollision(Entity* entity)
+{
+	Tile* currTile;
+	float dx, dy, dxMin, dyMin;
+
+	entity->onGround = false;
+	entity->inWater = false;
+
+	// only check a small region around entity for collisions
+	int minTileX = (entity->position.x - entity->size.x / 2) / U_P;
+	if (minTileX < 0)
+		minTileX = 0;
+	int maxTileX = (entity->position.x + entity->size.x) / U_P;
+	if (maxTileX > TILES_X)
+		maxTileX = TILES_X;
+	int minTileY = (entity->position.y - entity->size.y / 2) / U_P;
+	if (minTileY < 0)
+		minTileY = 0;
+	int maxTileY = (entity->position.y + entity->size.y) / U_P;
+	if (maxTileY > TILES_Y)
+		maxTileY = TILES_Y;
+
+	if (entityOnScreen(entity))
+	{
+		// check if entity is buried in many tiles
+		int overlappingTiles = 0;
+		for (int y = minTileY; y < maxTileY; y++)
+		{
+			for (int x = minTileX; x < maxTileX; x++)
+			{
+				currTile = tiles[y][x];
+				if (currTile != nullptr)
+				{
+					if (currTile->material != WATER)
+						overlappingTiles++;
+					else
+						entity->inWater = true;
+				}
+			}
+		}
+
+		// if more than 80% of entity is buried in tiles, push them up
+		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
+		{
+			entity->position.y += entity->size.y;
+		}
+	}
+
+	// iterating over tiles in entity's vicinity, checking for collision
+	for (int y = minTileY; y < maxTileY; y++)
+	{
+		for (int x = minTileX; x < maxTileX; x++)
+		{
+			currTile = tiles[y][x];
+
+			if (currTile != nullptr and currTile->material != WATER)
+			{
+				dx = abs(entity->position.x - currTile->position.x);
+				dy = abs(entity->position.y - currTile->position.y);
+				dxMin = (entity->size.x + U_P) / 2;
+				dyMin = (entity->size.y + U_P) / 2;
+
+				// true if entity is intersecting tile
+				if (dx < dxMin and dy < dyMin)
+				{
+					// distance entity needs to be displaced to no longer intersect tile
+					float sx = dxMin - dx;
+					float sy = dyMin - dy;
+
+					// if x correction is smaller, push entity horizontally
+					if (sx < sy)
+					{
+						// 1 = entity is on right, -1 = entity is on left
+						int sign = (entity->position.x > currTile->position.x ? 1 : -1);
+						sx *= sign;
+
+						if (tiles[y][x + sign] == nullptr or tiles[y][x + sign]->material == WATER)
+						{
+							// checks if entity is approaching a one-tile high wall and steps over it
+							bool canStep = currTile->position.y - U_P / 2 <= entity->position.y - entity->size.y / 2;
+
+							if (canStep)
+							{
+								// makes sure there is room for the entity above step
+								for (int i = 1; i <= entity->size.y / U_P; i++)
+								{
+									if (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER)
+									{
+										canStep = false;
+										break;
+									}
+								}
+							}
+
+							if (canStep)
+							{
+								entity->position.y += sy;
+								entity->onGround = true;
+							}
+							else
+							{
+								entity->position.x += sx;
+								entity->velocity.x = 0;
+							}
+						}
+					}
+					// y correction is smaller, push entity vertically
+					else
+					{
+						// 1 = entity is above, -1 = entity is below
+						int sign = (entity->position.y < currTile->position.y ? -1 : 1);
+						sy *= sign;
+
+						// check that entity could have realistically contacted tile
+						if (tiles[y + sign][x] == nullptr or tiles[y + sign][x]->material == WATER)
+						{
+							if (sign == 1 and entity->velocity.y <= 0)
+							{
+								entity->onGround = true;
+							}
+
+							// stop entity if falling down
+							if (entity->velocity.y < 0)
+								entity->velocity.y = 0;
+
+							entity->position.y += sy;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void EntityManager::checkPlayerTileCollision()
 {
 	Tile* currTile;
@@ -600,7 +734,7 @@ void EntityManager::checkPlayerTileCollision()
 	if (maxTileY > TILES_Y)
 		maxTileY = TILES_Y;
 
-	if (playerOnScreen())
+	if (entityOnScreen(player))
 	{
 		// check if player is buried in many tiles
 		int overlappingTiles = 0;

@@ -1,5 +1,6 @@
 #ifndef EntityManager_H
 #include <Constants.h>
+#include <Entity.h>
 #include <Player.h>
 #include <SFML/Window.hpp>
 #include <Tile.h>
@@ -27,8 +28,9 @@ public:
 private:
 	float updateTimer, blockGravTimer;
 	void initTileColors();
+	void checkEntityTileCollision(Entity* entity);
 	void checkPlayerTileCollision();
-	bool playerOnScreen();
+	bool entityOnScreen(Entity* entity);
 	bool validPos(int x, int y);
 	int signOf(int n);
 	bool earthBendable(Tile* tile);
