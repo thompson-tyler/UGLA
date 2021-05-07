@@ -20,10 +20,10 @@ EntityManager::EntityManager()
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			else if (TILES_X / 2 - 30 < x and x < TILES_X / 2 and 70 < y and y < 80)
-			{
-				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
-			}
+			// else if (TILES_X / 2 - 30 < x and x < TILES_X / 2 and 70 < y and y < 80)
+			// {
+			// 	tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
+			// }
 			else
 			{
 				tiles[y][x] = nullptr;
@@ -36,6 +36,8 @@ EntityManager::EntityManager()
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
 	viewScale = 1;
+
+	enemy = new Enemy(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.75, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } });
 }
 
 EntityManager::~EntityManager()
@@ -58,6 +60,9 @@ void EntityManager::update(float dt)
 	{
 		player->update(UPDATE_DURATION);
 		checkPlayerTileCollision();
+
+		enemy->update(UPDATE_DURATION);
+		checkEntityTileCollision(enemy);
 
 		updateTimer -= UPDATE_DURATION;
 	}
@@ -85,6 +90,9 @@ void EntityManager::render(sf::RenderWindow& window)
 
 	window.setView(view);
 
+	player->render(window);
+	enemy->render(window);
+
 	// getting bounds for render, only rendering tiles in the viewport
 	int minVisibleTilesX = (viewCenter.x - viewSize.x / 2) / U_P;
 	if (minVisibleTilesX < 0)
@@ -109,7 +117,6 @@ void EntityManager::render(sf::RenderWindow& window)
 			}
 		}
 	}
-	player->render(window);
 }
 
 void EntityManager::zoomIn()
@@ -620,7 +627,7 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 		}
 
 		// if more than 80% of entity is buried in tiles, push them up
-		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
+		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.8)
 		{
 			entity->position.y += entity->size.y;
 		}
@@ -643,6 +650,11 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 				// true if entity is intersecting tile
 				if (dx < dxMin and dy < dyMin)
 				{
+					if (abs(currTile->velocity.x) > 1 or abs(currTile->velocity.y) > 1)
+					{
+						entity->damage(abs(currTile->velocity.x) + abs(currTile->velocity.y), { 0.5f * U_P * currTile->velocity.x, U_P * (2 * currTile->velocity.y) });
+					}
+
 					// distance entity needs to be displaced to no longer intersect tile
 					float sx = dxMin - dx;
 					float sy = dyMin - dy;

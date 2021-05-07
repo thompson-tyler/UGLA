@@ -8,7 +8,7 @@ Player::Player() :
 {
 	this->sprite.setFillColor(PLAYER_COLOR);
 	isDiving = false;
-	facingRight = true;
+	this->health = 20;
 }
 
 void Player::moveRight(float dt)

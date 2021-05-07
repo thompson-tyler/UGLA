@@ -10,8 +10,12 @@ class Entity : public GameObject
 public:
 	Entity(float x, float y, sf::RectangleShape sprite);
 	void update(float dt);
+	void damage(int amount, sf::Vector2f knockback);
+
 	bool onGround;
 	bool inWater;
+	bool facingRight;
+	int health;
 };
 
 #endif

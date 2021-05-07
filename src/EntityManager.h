@@ -1,5 +1,6 @@
 #ifndef EntityManager_H
 #include <Constants.h>
+#include <Enemy.h>
 #include <Entity.h>
 #include <Player.h>
 #include <SFML/Window.hpp>
@@ -21,6 +22,7 @@ public:
 	void zoomIn();
 	void zoomOut();
 
+	Enemy* enemy;
 	Player* player;
 	Tile* tiles[TILES_Y][TILES_X];
 	void doBlockUpdates();
