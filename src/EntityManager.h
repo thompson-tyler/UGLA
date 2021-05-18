@@ -37,7 +37,6 @@ private:
 	int signOf(int n);
 	bool earthBendable(Tile* tile);
 	float clamp(float n, float min, float max);
-	void moveTileTo(int xi, int yi, int xf, int yf);
 	void switchTiles(int x1, int y1, int x2, int y2);
 	void updateRipple();
 

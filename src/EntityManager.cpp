@@ -2,6 +2,8 @@
 #include <OpenSimplexNoise.hpp>
 #include <cmath>
 #include <iostream>
+#include <stdlib.h>
+#include <time.h>
 
 EntityManager::EntityManager()
 {
@@ -13,14 +15,14 @@ EntityManager::EntityManager()
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
 			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
-			// if (y < 50)
+			// if (y < 50 or x == 35)
 			{
 				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2, 2) < pow(5, 2))
+			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(32, 2))
 			{
 				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
 			}
@@ -36,6 +38,8 @@ EntityManager::EntityManager()
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
 	viewScale = 1;
+
+	srand(time(NULL));
 
 	enemy = new Enemy(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.75, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } });
 }
@@ -399,17 +403,6 @@ bool EntityManager::earthBendable(Tile* tile)
 	return (tile->material == STONE or tile->material == SAND);
 }
 
-void EntityManager::moveTileTo(int xi, int yi, int xf, int yf)
-{
-	if (validPos(xi, yi) and validPos(xf, yf) and tiles[yi][xi] != nullptr and tiles[yf][xf] == nullptr)
-	{
-		tiles[yi][xi]->position = { (xf + 0.5f) * U_P, (yf + 0.5f) * U_P };
-		tiles[yi][xi]->hasMoved = true;
-		tiles[yf][xf] = tiles[yi][xi];
-		tiles[yi][xi] = nullptr;
-	}
-}
-
 void EntityManager::switchTiles(int x1, int y1, int x2, int y2)
 {
 	if (validPos(x1, y1) and validPos(x2, y2))
@@ -419,17 +412,12 @@ void EntityManager::switchTiles(int x1, int y1, int x2, int y2)
 		tiles[y2][x2] = tiles[y1][x1];
 		tiles[y1][x1] = tempTile;
 
-		// update locations and move states
+		// update locations
 		if (tiles[y1][x1] != nullptr)
-		{
 			tiles[y1][x1]->position = { (x1 + 0.5f) * U_P, (y1 + 0.5f) * U_P };
-			tiles[y1][x1]->hasMoved = true;
-		}
+
 		if (tiles[y2][x2] != nullptr)
-		{
 			tiles[y2][x2]->position = { (x2 + 0.5f) * U_P, (y2 + 0.5f) * U_P };
-			tiles[y2][x2]->hasMoved = true;
-		}
 	}
 }
 
@@ -523,10 +511,10 @@ void EntityManager::doBlockUpdates()
 			for (int x = 0; x < TILES_X; x++)
 			{
 				Tile* currTile = tiles[y][x];
-				if (currTile != nullptr and !currTile->hasMoved)
+				if (currTile != nullptr)
 				{
 					// horizontal movement
-					if (currTile->velocity.x != 0)
+					if (currTile->velocity.x != 0 and !currTile->hasMoved)
 					{
 						int sign = signOf(currTile->velocity.x);
 
@@ -535,11 +523,12 @@ void EntityManager::doBlockUpdates()
 						{
 							currTile->velocity.x -= sign;
 							switchTiles(x, y, x + sign, y);
+							currTile->hasMoved = true;
 							movedTile = true;
 						}
 					}
 					// vertical movement
-					else if (currTile->velocity.y != 0)
+					if (currTile->velocity.y != 0 and !currTile->hasMoved)
 					{
 						int sign = signOf(currTile->velocity.y);
 
@@ -548,30 +537,36 @@ void EntityManager::doBlockUpdates()
 						{
 							currTile->velocity.y -= sign;
 							switchTiles(x, y, x, y + sign);
+							currTile->hasMoved = true;
 							movedTile = true;
 						}
 					}
-					// sand movement -> fall to diagonals if they're empty
-					else if (currTile->material == SAND or currTile->material == WATER)
+					if ((currTile->material == SAND or currTile->material == WATER) and !currTile->hasMoved)
 					{
-						for (int sign : { -1, 1 })
+						// sand and water movement -> fall to diagonals if they're empty
+						int randSide = 2 * (rand() % 2) - 1;
+						for (int sign : { randSide, -randSide })
 						{
 							if (validPos(x + sign, y - 1) and (tiles[y - 1][x + sign] == nullptr or (tiles[y - 1][x + sign]->material == WATER and currTile->material != WATER)))
 							{
 								switchTiles(x, y, x + sign, y - 1);
+								currTile->hasMoved = true;
 								movedTile = true;
+								break;
 							}
 						}
 						// water movement -> move to side if empty
-						if (currTile->material == WATER)
+						if (currTile->material == WATER and !currTile->hasMoved)
 						{
-							for (int sign : { -1, 1 })
+							for (int sign : { randSide, -randSide })
 							{
 								if (validPos(x + sign, y) and tiles[y][x + sign] == nullptr)
 								{
 									switchTiles(x, y, x + sign, y);
+									currTile->hasMoved = true;
 									movedTile = true;
 								}
+								break;
 							}
 						}
 					}
@@ -591,17 +586,16 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 
 	// only check a small region around entity for collisions
 	int minTileX = (entity->position.x - entity->size.x / 2) / U_P;
-	if (minTileX < 0)
-		minTileX = 0;
+	minTileX = clamp(minTileX, 0, TILES_X);
+
 	int maxTileX = (entity->position.x + entity->size.x) / U_P;
-	if (maxTileX > TILES_X)
-		maxTileX = TILES_X;
+	maxTileX = clamp(maxTileX, 0, TILES_X);
+
 	int minTileY = (entity->position.y - entity->size.y / 2) / U_P;
-	if (minTileY < 0)
-		minTileY = 0;
+	minTileY = clamp(minTileY, 0, TILES_Y);
+
 	int maxTileY = (entity->position.y + entity->size.y) / U_P;
-	if (maxTileY > TILES_Y)
-		maxTileY = TILES_Y;
+	maxTileY = clamp(maxTileY, 0, TILES_Y);
 
 	if (entityOnScreen(entity))
 	{
@@ -622,7 +616,7 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 			}
 		}
 
-		// if more than 80% of entity is buried in tiles, push them up
+		// if more than x% of entity is buried in tiles, push them up
 		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.8)
 		{
 			entity->position.y += entity->size.y;
@@ -695,6 +689,8 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 									entity->damage(damageDone, knockback);
 									damaged = true;
 								}
+
+								entity->jump();
 							}
 						}
 					}
@@ -776,7 +772,7 @@ void EntityManager::checkPlayerTileCollision()
 			}
 		}
 
-		// if more than 80% of player is buried in tiles, push them up
+		// if more than x% of player is buried in tiles, push them up
 		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
 		{
 			player->position.y += player->size.y;
