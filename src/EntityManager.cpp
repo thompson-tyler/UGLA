@@ -12,18 +12,18 @@ EntityManager::EntityManager()
 			// if (y < 2 + pow(x - TILES_X / 2, 2) / 30)
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
-			// if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
-			if (y < 50)
+			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
+			// if (y < 50)
 			{
 				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			// else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2, 2) < pow(5, 2))
-			// {
-			// 	tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
-			// }
+			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2, 2) < pow(5, 2))
+			{
+				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
+			}
 			else
 			{
 				tiles[y][x] = nullptr;
@@ -96,17 +96,16 @@ void EntityManager::render(sf::RenderWindow& window)
 
 	// getting bounds for render, only rendering tiles in the viewport
 	int minVisibleTilesX = (viewCenter.x - viewSize.x / 2) / U_P;
-	if (minVisibleTilesX < 0)
-		minVisibleTilesX = 0;
+	minVisibleTilesX = clamp(minVisibleTilesX, 0, TILES_X - 1);
+
 	int maxVisibleTilesX = (viewCenter.x + viewSize.x / 2) / U_P;
-	if (maxVisibleTilesX > TILES_X - 1)
-		maxVisibleTilesX = TILES_X - 1;
+	maxVisibleTilesX = clamp(maxVisibleTilesX, 0, TILES_X - 1);
+
 	int minVisibleTilesY = TILES_Y - (viewCenter.y + viewSize.y / 2) / U_P;
-	if (minVisibleTilesY < 0)
-		minVisibleTilesY = 0;
+	minVisibleTilesY = clamp(minVisibleTilesY, 0, TILES_Y - 1);
+
 	int maxVisibleTilesY = TILES_Y - (viewCenter.y - viewSize.y / 2) / U_P;
-	if (maxVisibleTilesY > TILES_Y - 1)
-		maxVisibleTilesY = TILES_Y - 1;
+	maxVisibleTilesY = clamp(maxVisibleTilesY, 0, TILES_Y - 1);
 
 	for (int y = minVisibleTilesY; y <= maxVisibleTilesY; y++)
 	{
@@ -189,20 +188,16 @@ void EntityManager::groundJump()
 	{
 		// get tile selection under player
 		int minTileX = (player->position.x - player->size.x / 2) / U_P;
-		if (minTileX < 0)
-			minTileX = 0;
+		minTileX = clamp(minTileX, 0, TILES_X);
 
 		int maxTileX = (player->position.x + player->size.x) / U_P;
-		if (maxTileX > TILES_X)
-			maxTileX = TILES_X;
+		maxTileX = clamp(maxTileX, 0, TILES_X);
 
-		int minTileY = (player->position.y - player->size.y) / U_P - GROUND_JUMP_COL_HEIGHT;
-		if (minTileY < 1)
-			minTileY = 1;
+		int minTileY = (player->position.y - player->size.y / 2) / U_P - GROUND_JUMP_COL_HEIGHT;
+		minTileY = clamp(minTileY, 1, TILES_Y);
 
 		int maxTileY = (player->position.y - player->size.y / 2) / U_P;
-		if (maxTileY > TILES_Y)
-			maxTileY = TILES_Y;
+		maxTileY = clamp(maxTileY, 1, TILES_Y);
 
 		for (int y = minTileY; y < maxTileY; y++)
 		{
