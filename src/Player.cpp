@@ -95,6 +95,8 @@ void Player::update(float dt)
 
 	position += velocity * dt;
 
+	// keep in world bounds
+
 	if (position.x > WORLD_SIZE.x - size.x / 2)
 	{
 		position.x = WORLD_SIZE.x - size.x / 2;

@@ -12,15 +12,15 @@ EntityManager::EntityManager()
 			// if (y < 2 + pow(x - TILES_X / 2, 2) / 30)
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
-			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
-			// if (y < 50)
+			// if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
+			if (y < 50)
 			{
 				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			// else if (TILES_X / 2 - 30 < x and x < TILES_X / 2 and 70 < y and y < 80)
+			// else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2, 2) < pow(5, 2))
 			// {
 			// 	tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
 			// }
@@ -61,6 +61,7 @@ void EntityManager::update(float dt)
 		player->update(UPDATE_DURATION);
 		checkPlayerTileCollision();
 
+		enemy->setTarget(player);
 		enemy->update(UPDATE_DURATION);
 		checkEntityTileCollision(enemy);
 
@@ -269,7 +270,7 @@ void EntityManager::updateRipple()
 			{
 				if (tiles[y][x] != nullptr)
 				{
-					tiles[y][x]->velocity.y = 4;
+					tiles[y][x]->velocity.y = 8;
 				}
 			}
 		}
@@ -374,7 +375,7 @@ void EntityManager::pushTiles(int direction)
 
 bool EntityManager::entityOnScreen(Entity* entity)
 {
-	return (entity->position.x - entity->size.x / 2 >= 0 and entity->position.x + entity->size.x / 2 <= WORLD_SIZE.x) and (entity->position.y - player->size.y / 2 >= 0 and player->position.y + player->size.y / 2 <= WORLD_SIZE.y);
+	return (entity->position.x - entity->size.x / 2 >= 0 and entity->position.x + entity->size.x / 2 <= WORLD_SIZE.x) and (entity->position.y - entity->size.y / 2 >= 0 and entity->position.y + entity->size.y / 2 <= WORLD_SIZE.y);
 }
 
 bool EntityManager::validPos(int x, int y)
@@ -633,6 +634,8 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 		}
 	}
 
+	bool damaged = false;
+
 	// iterating over tiles in entity's vicinity, checking for collision
 	for (int y = minTileY; y < maxTileY; y++)
 	{
@@ -650,11 +653,6 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 				// true if entity is intersecting tile
 				if (dx < dxMin and dy < dyMin)
 				{
-					if (abs(currTile->velocity.x) > 1 or abs(currTile->velocity.y) > 1)
-					{
-						entity->damage(abs(currTile->velocity.x) + abs(currTile->velocity.y), { 0.5f * U_P * currTile->velocity.x, U_P * (2 * currTile->velocity.y) });
-					}
-
 					// distance entity needs to be displaced to no longer intersect tile
 					float sx = dxMin - dx;
 					float sy = dyMin - dy;
@@ -693,6 +691,15 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 							{
 								entity->position.x += sx;
 								entity->velocity.x = 0;
+
+								// damage entity if tile is moving
+								if (!damaged and abs(currTile->velocity.x) > 0)
+								{
+									double damageDone = abs(currTile->velocity.x) / 2;
+									sf::Vector2f knockback = { 50 * U_P * signOf(currTile->velocity.x), 8 * U_P };
+									entity->damage(damageDone, knockback);
+									damaged = true;
+								}
 							}
 						}
 					}
@@ -716,6 +723,15 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 								entity->velocity.y = 0;
 
 							entity->position.y += sy;
+
+							// damage entity if tile is moving
+							if (!damaged and abs(currTile->velocity.y) > 0)
+							{
+								double damageDone = abs(currTile->velocity.y) / 2;
+								sf::Vector2f knockback = { 0, 16 * U_P * signOf(currTile->velocity.y) };
+								entity->damage(damageDone, knockback);
+								damaged = true;
+							}
 						}
 					}
 				}

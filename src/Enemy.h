@@ -9,10 +9,12 @@ public:
 	Enemy(float x, float y, sf::RectangleShape sprite);
 	void update(float dt);
 	void render(sf::RenderWindow& window);
-	// void moveRight(float dt);
-	// void moveLeft(float dt);
-	// void jump();
-	// void dive();
+	void setTarget(Entity* target);
+	void moveRight(float dt);
+	void moveLeft(float dt);
+
+private:
+	Entity* target;
 };
 
 #endif
