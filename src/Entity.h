@@ -9,6 +9,7 @@ class Entity : public GameObject
 {
 public:
 	Entity(float x, float y, sf::RectangleShape sprite);
+	void render(sf::RenderWindow& window);
 	void update(float dt);
 	void damage(int amount, sf::Vector2f knockback);
 	void jump();
@@ -17,6 +18,9 @@ public:
 	bool inWater;
 	bool facingRight;
 	int health;
+
+	sf::Texture texture;
+	sf::IntRect rectSourceSprite;
 };
 
 #endif

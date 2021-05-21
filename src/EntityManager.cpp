@@ -15,14 +15,14 @@ EntityManager::EntityManager()
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
 			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
-			// if (y < 50 or x == 35)
+			// if (y < 50)
 			{
 				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(32, 2))
+			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(8, 2))
 			{
 				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
 			}

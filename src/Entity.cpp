@@ -12,6 +12,14 @@ Entity::Entity(float x, float y, sf::RectangleShape sprite) :
 	facingRight = true;
 }
 
+void Entity::render(sf::RenderWindow& window)
+{
+	this->sprite.setScale((facingRight ? 1.f : -1.f), 1.f);
+	this->sprite.setPosition(centerAsSFMLCoords());
+
+	window.draw(this->sprite);
+}
+
 void Entity::jump()
 {
 	if (onGround or inWater)

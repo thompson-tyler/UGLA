@@ -23,6 +23,7 @@ const static sf::Keyboard::Key JUMP_KEY = sf::Keyboard::W,
 // PLAYER CONSTS
 
 // speeds in x per second
+const sf::Vector2f PLAYER_SIZE = { 3 * U_P, 3 * U_P };
 const float MAX_HORIZONTAL_SPEED = 32.f * U_P,
 			MAX_FALL_SPEED = 64.f * U_P,
 			T_TO_MAX_SPEED = 0.15f,
@@ -34,7 +35,7 @@ const int DIVE_COEFF = 2;
 const float GROUND_JUMP_COEFF = 1.5f;
 const int GROUND_JUMP_COL_HEIGHT = 8;
 const int RIPPLE_RADIUS = 16;
-const int RIPPLE_THICKNESS = 4;
+const int RIPPLE_THICKNESS = 8;
 const int RAISE_BOULDER_SIZE = 5;
 const float PUSH_VELOCITY = 20.f;
 

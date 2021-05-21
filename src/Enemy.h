@@ -12,13 +12,6 @@ public:
 	void setTarget(Entity* target);
 	void moveRight(float dt);
 	void moveLeft(float dt);
-	void jump()
-	{
-		if (onGround or inWater)
-		{
-			velocity.y = JUMP_VEL;
-		}
-	}
 
 private:
 	Entity* target;

@@ -5,23 +5,16 @@
 GameObject::GameObject(float x, float y, sf::RectangleShape sprite)
 {
 	this->position = { x, y };
+	this->velocity = { 0, 0 };
+
 	this->sprite = sprite;
 	this->size = { sprite.getSize().x, sprite.getSize().y };
-	this->velocity = { 0, 0 };
+	this->sprite.setOrigin(size.x / 2, size.y / 2);
 }
 
 void GameObject::render(sf::RenderWindow& window)
 {
-	this->sprite.setPosition(cornerAsSFMLCoords());
-
-	// int r = -velocity.y * 100;
-	// if (r < 0) r = 0;
-	// if (r > 255) r = 255;
-
-	// int g = velocity.y * 30;
-	// if (g < 0) g = 0;
-	// if (g > 255) g = 255;
-	// this->sprite.setFillColor(sf::Color(r, g, 0));
+	this->sprite.setPosition(centerAsSFMLCoords());
 
 	window.draw(this->sprite);
 }

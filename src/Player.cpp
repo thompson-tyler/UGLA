@@ -4,11 +4,50 @@
 #include <cmath>
 
 Player::Player() :
-	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.5, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } })
+	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.5, sf::RectangleShape { PLAYER_SIZE })
 {
-	this->sprite.setFillColor(PLAYER_COLOR);
 	isDiving = false;
+	moving = false;
 	this->health = 20;
+
+	// this->sprite.setFillColor(PLAYER_COLOR);
+	texture.loadFromFile("content/mario_sheet.png");
+	rectSourceSprite = { 0, 0, 16, 16 };
+
+	this->sprite.setTexture(&texture);
+	sprite.setTextureRect(rectSourceSprite);
+}
+
+void Player::render(sf::RenderWindow& window)
+{
+	if (!onGround)
+	{
+		if (isDiving)
+			rectSourceSprite.left = 80;
+		else
+			rectSourceSprite.left = 64;
+	}
+	else if (!moving)
+	{
+		rectSourceSprite.left = 0;
+	}
+	else
+	{
+		if (animClock.getElapsedTime().asSeconds() > 0.1f)
+		{
+			rectSourceSprite.left += 16;
+			if (rectSourceSprite.left > 48)
+				rectSourceSprite.left = 16;
+
+			animClock.restart();
+		}
+	}
+
+	sprite.setTextureRect(rectSourceSprite);
+	this->sprite.setScale((facingRight ? 1.f : -1.f), 1.f);
+	this->sprite.setPosition(centerAsSFMLCoords());
+
+	window.draw(this->sprite);
 }
 
 void Player::moveRight(float dt)
@@ -49,7 +88,7 @@ void Player::update(float dt)
 {
 	// 		HORIZONTAL MOVEMENT
 
-	bool moving = false;
+	moving = false;
 	if (sf::Keyboard::isKeyPressed(MOVE_RIGHT_KEY))
 	{
 		if (!isDiving)
