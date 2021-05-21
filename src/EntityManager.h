@@ -47,6 +47,7 @@ private:
 	Ripple currRipple;
 
 	float viewScale;
+	sf::Vector2f viewCenter;
 };
 
 #endif

@@ -42,6 +42,8 @@ EntityManager::EntityManager()
 	srand(time(NULL));
 
 	enemy = new Enemy(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.75, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } });
+
+	viewCenter = { WORLD_SIZE.x / 2, WORLD_SIZE.y / 2 };
 }
 
 EntityManager::~EntityManager()
@@ -85,7 +87,11 @@ void EntityManager::update(float dt)
 void EntityManager::render(sf::RenderWindow& window)
 {
 	sf::Vector2f viewSize { WIN_SIZE.x * viewScale, WIN_SIZE.y * viewScale };
-	sf::Vector2f viewCenter = player->centerAsSFMLCoords();
+
+	viewCenter.x += player->centerAsSFMLCoords().x * 0.1f;
+	viewCenter.x /= 1.1f;
+	viewCenter.y += player->centerAsSFMLCoords().y * 0.1f;
+	viewCenter.y /= 1.1f;
 
 	viewCenter.x = clamp(viewCenter.x, viewSize.x / 2, WORLD_SIZE.x - viewSize.x / 2);
 

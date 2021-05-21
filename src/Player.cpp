@@ -16,6 +16,7 @@ Player::Player() :
 
 	this->sprite.setTexture(&texture);
 	sprite.setTextureRect(rectSourceSprite);
+	sprite.setPosition(centerAsSFMLCoords());
 }
 
 void Player::render(sf::RenderWindow& window)
@@ -45,7 +46,13 @@ void Player::render(sf::RenderWindow& window)
 
 	sprite.setTextureRect(rectSourceSprite);
 	this->sprite.setScale((facingRight ? 1.f : -1.f), 1.f);
-	this->sprite.setPosition(centerAsSFMLCoords());
+
+	// interpolation coefficient: higher will keep sprite closer to actual pos but be more choppy
+	float interp = 0.3f;
+
+	sf::Vector2f newPos = { centerAsSFMLCoords().x * interp + sprite.getPosition().x * (1.f - interp), centerAsSFMLCoords().y * interp + sprite.getPosition().y * (1.f - interp) };
+
+	this->sprite.setPosition(newPos);
 
 	window.draw(this->sprite);
 }
