@@ -4,7 +4,7 @@
 #include <cmath>
 
 Player::Player() :
-	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.5, sf::RectangleShape { PLAYER_SIZE })
+	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y / 2, sf::RectangleShape { PLAYER_SPRITE_SIZE }, PLAYER_HITBOX_SIZE)
 {
 	isDiving = false;
 	moving = false;
@@ -48,13 +48,23 @@ void Player::render(sf::RenderWindow& window)
 	this->sprite.setScale((facingRight ? 1.f : -1.f), 1.f);
 
 	// interpolation coefficient: higher will keep sprite closer to actual pos but be more choppy
-	float interp = 0.3f;
+	float interp = 0.5f;
 
 	sf::Vector2f newPos = { centerAsSFMLCoords().x * interp + sprite.getPosition().x * (1.f - interp), centerAsSFMLCoords().y * interp + sprite.getPosition().y * (1.f - interp) };
 
 	this->sprite.setPosition(newPos);
 
 	window.draw(this->sprite);
+
+	// debug hitbox rendering
+	// sf::RectangleShape hitboxOutline(this->size);
+	// hitboxOutline.setOrigin(size.x / 2, size.y / 2);
+	// hitboxOutline.setPosition(centerAsSFMLCoords());
+	// hitboxOutline.setOutlineThickness(1);
+	// hitboxOutline.setOutlineColor(sf::Color::Red);
+	// hitboxOutline.setFillColor(sf::Color::Transparent);
+
+	// window.draw(hitboxOutline);
 }
 
 void Player::moveRight(float dt)

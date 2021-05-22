@@ -23,7 +23,8 @@ const static sf::Keyboard::Key JUMP_KEY = sf::Keyboard::W,
 // PLAYER CONSTS
 
 // speeds in x per second
-const sf::Vector2f PLAYER_SIZE = { 3 * U_P, 3 * U_P };
+const sf::Vector2f PLAYER_SPRITE_SIZE = { 3 * U_P, 3 * U_P };
+const sf::Vector2f PLAYER_HITBOX_SIZE = { 3 * U_P, 3 * U_P };
 const float MAX_HORIZONTAL_SPEED = 32.f * U_P,
 			MAX_FALL_SPEED = 64.f * U_P,
 			T_TO_MAX_SPEED = 0.15f,

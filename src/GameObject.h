@@ -7,6 +7,7 @@ class GameObject
 {
 public:
 	GameObject(float x, float y, sf::RectangleShape sprite);
+	GameObject(float x, float y, sf::RectangleShape sprite, sf::Vector2f hitboxSize);
 
 	void render(sf::RenderWindow& window);
 	sf::Vector2f cornerAsSFMLCoords();

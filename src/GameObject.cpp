@@ -12,6 +12,16 @@ GameObject::GameObject(float x, float y, sf::RectangleShape sprite)
 	this->sprite.setOrigin(size.x / 2, size.y / 2);
 }
 
+GameObject::GameObject(float x, float y, sf::RectangleShape sprite, sf::Vector2f hitboxSize)
+{
+	this->position = { x, y };
+	this->velocity = { 0, 0 };
+
+	this->sprite = sprite;
+	this->size = hitboxSize;
+	this->sprite.setOrigin(this->sprite.getSize().x / 2, this->sprite.getSize().y / 2);
+}
+
 void GameObject::render(sf::RenderWindow& window)
 {
 	this->sprite.setPosition(centerAsSFMLCoords());

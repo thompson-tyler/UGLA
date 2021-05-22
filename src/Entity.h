@@ -9,6 +9,8 @@ class Entity : public GameObject
 {
 public:
 	Entity(float x, float y, sf::RectangleShape sprite);
+	Entity(float x, float y, sf::RectangleShape sprite, sf::Vector2f hitboxSize);
+
 	void render(sf::RenderWindow& window);
 	void update(float dt);
 	void damage(int amount, sf::Vector2f knockback);

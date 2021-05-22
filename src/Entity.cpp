@@ -12,6 +12,14 @@ Entity::Entity(float x, float y, sf::RectangleShape sprite) :
 	facingRight = true;
 }
 
+Entity::Entity(float x, float y, sf::RectangleShape sprite, sf::Vector2f hitboxSize) :
+	GameObject(x, y, sprite, hitboxSize)
+{
+	onGround = false;
+	inWater = false;
+	facingRight = true;
+}
+
 void Entity::render(sf::RenderWindow& window)
 {
 	this->sprite.setScale((facingRight ? 1.f : -1.f), 1.f);
