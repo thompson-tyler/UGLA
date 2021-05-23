@@ -121,7 +121,7 @@ void Enemy::update(float dt)
 
 void Enemy::render(sf::RenderWindow& window)
 {
-	this->sprite.setPosition(cornerAsSFMLCoords());
+	this->sprite.setPosition(centerAsSFMLCoords());
 
 	int r = -health / 100.f * 255;
 	if (r < 0)

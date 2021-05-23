@@ -13,7 +13,8 @@ public:
 	sf::Vector2f cornerAsSFMLCoords();
 	sf::Vector2f centerAsSFMLCoords();
 
-	sf::Vector2f size, position, velocity;
+	sf::Vector2f size;
+	sf::Vector2f position, velocity;
 	sf::RectangleShape sprite;
 };
 

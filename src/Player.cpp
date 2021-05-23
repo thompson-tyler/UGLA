@@ -4,15 +4,15 @@
 #include <cmath>
 
 Player::Player() :
-	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y / 2, sf::RectangleShape { PLAYER_SPRITE_SIZE }, PLAYER_HITBOX_SIZE)
+	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y / 2, sf::RectangleShape(PLAYER_SPRITE_SIZE), PLAYER_HITBOX_SIZE)
 {
 	isDiving = false;
 	moving = false;
 	this->health = 20;
 
 	// this->sprite.setFillColor(PLAYER_COLOR);
-	texture.loadFromFile("content/mario_sheet.png");
-	rectSourceSprite = { 0, 0, 16, 16 };
+	texture.loadFromFile("content/adventurer_sheet.png");
+	rectSourceSprite = { 0, 0, (int)PLAYER_SPRITE_SIZE.x, (int)PLAYER_SPRITE_SIZE.y };
 
 	this->sprite.setTexture(&texture);
 	sprite.setTextureRect(rectSourceSprite);
@@ -24,24 +24,41 @@ void Player::render(sf::RenderWindow& window)
 	if (!onGround)
 	{
 		if (isDiving)
-			rectSourceSprite.left = 80;
+		{
+			rectSourceSprite.left = 0;
+			rectSourceSprite.top = 0;
+		}
 		else
-			rectSourceSprite.left = 64;
+		{
+			rectSourceSprite.left = 0;
+			rectSourceSprite.top = 0;
+		}
 	}
-	else if (!moving)
+	// runnning animation
+	else if (moving)
 	{
-		rectSourceSprite.left = 0;
-	}
-	else
-	{
+		rectSourceSprite.top = PLAYER_SPRITE_SIZE.y;
 		if (animClock.getElapsedTime().asSeconds() > 0.1f)
 		{
-			rectSourceSprite.left += 16;
-			if (rectSourceSprite.left > 48)
-				rectSourceSprite.left = 16;
+			rectSourceSprite.left += PLAYER_SPRITE_SIZE.x;
 
 			animClock.restart();
 		}
+		if (rectSourceSprite.left >= PLAYER_SPRITE_SIZE.x * 6)
+			rectSourceSprite.left = 0;
+	}
+	// idle animation
+	else
+	{
+		rectSourceSprite.top = 0;
+		if (animClock.getElapsedTime().asSeconds() > 0.25f)
+		{
+			rectSourceSprite.left += PLAYER_SPRITE_SIZE.x;
+
+			animClock.restart();
+		}
+		if (rectSourceSprite.left >= PLAYER_SPRITE_SIZE.x * 4)
+			rectSourceSprite.left = 0;
 	}
 
 	sprite.setTextureRect(rectSourceSprite);
@@ -57,14 +74,14 @@ void Player::render(sf::RenderWindow& window)
 	window.draw(this->sprite);
 
 	// debug hitbox rendering
-	// sf::RectangleShape hitboxOutline(this->size);
-	// hitboxOutline.setOrigin(size.x / 2, size.y / 2);
-	// hitboxOutline.setPosition(centerAsSFMLCoords());
-	// hitboxOutline.setOutlineThickness(1);
-	// hitboxOutline.setOutlineColor(sf::Color::Red);
-	// hitboxOutline.setFillColor(sf::Color::Transparent);
+	sf::RectangleShape hitboxOutline(this->size);
+	hitboxOutline.setOrigin(size.x / 2, size.y / 2);
+	hitboxOutline.setPosition(centerAsSFMLCoords());
+	hitboxOutline.setOutlineThickness(1);
+	hitboxOutline.setOutlineColor(sf::Color::Red);
+	hitboxOutline.setFillColor(sf::Color::Transparent);
 
-	// window.draw(hitboxOutline);
+	window.draw(hitboxOutline);
 }
 
 void Player::moveRight(float dt)
@@ -98,7 +115,8 @@ void Player::jump()
 void Player::dive()
 {
 	// enable diving if in air
-	isDiving = !onGround;
+	if (!onGround and !inWater)
+		isDiving = true;
 }
 
 void Player::update(float dt)
@@ -170,7 +188,7 @@ void Player::update(float dt)
 		velocity.y = 0;
 	}
 
-	if (onGround)
+	if (onGround or inWater)
 	{
 		isDiving = false;
 	}
