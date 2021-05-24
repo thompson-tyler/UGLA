@@ -14,18 +14,18 @@ EntityManager::EntityManager()
 			// if (y < 2 + pow(x - TILES_X / 2, 2) / 30)
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
-			// if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
-			if (y < 50)
+			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
+			// if (y < 50)
 			{
 				if (y % 30 < 15)
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
 				else
 					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
 			}
-			// else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(8, 2))
-			// {
-			// 	tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
-			// }
+			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(8, 2))
+			{
+				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
+			}
 			else
 			{
 				tiles[y][x] = nullptr;
@@ -41,7 +41,8 @@ EntityManager::EntityManager()
 
 	srand(time(NULL));
 
-	enemy = new Enemy(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.75, sf::RectangleShape { sf::Vector2f { 2 * U_P, 3 * U_P } });
+	sf::RectangleShape enemyShape(sf::Vector2f { 2 * U_P, 3 * U_P });
+	enemy = new Enemy(WORLD_SIZE.x / 2, WORLD_SIZE.y * 0.75, enemyShape, 50);
 
 	viewCenter = { WORLD_SIZE.x / 2, WORLD_SIZE.y / 2 };
 }
@@ -67,9 +68,18 @@ void EntityManager::update(float dt)
 		player->update(UPDATE_DURATION);
 		checkPlayerTileCollision();
 
-		enemy->setTarget(player);
-		enemy->update(UPDATE_DURATION);
-		checkEntityTileCollision(enemy);
+		if (enemy != nullptr)
+		{
+			enemy->setTarget(player);
+			enemy->update(UPDATE_DURATION);
+			checkEntityTileCollision(enemy);
+
+			if (enemy->health <= 0)
+			{
+				delete enemy;
+				enemy = nullptr;
+			}
+		}
 
 		updateTimer -= UPDATE_DURATION;
 	}
@@ -102,7 +112,9 @@ void EntityManager::render(sf::RenderWindow& window)
 	window.setView(view);
 
 	player->render(window);
-	enemy->render(window);
+
+	if (enemy != nullptr)
+		enemy->render(window);
 
 	// getting bounds for render, only rendering tiles in the viewport
 	int minVisibleTilesX = (viewCenter.x - viewSize.x / 2) / U_P;
@@ -200,7 +212,7 @@ void EntityManager::groundJump()
 		int minTileX = (player->position.x - player->size.x / 2) / U_P;
 		minTileX = clamp(minTileX, 0, TILES_X);
 
-		int maxTileX = (player->position.x + player->size.x / 2) / U_P;
+		int maxTileX = minTileX + player->size.x / U_P + 1;
 		maxTileX = clamp(maxTileX, 0, TILES_X);
 
 		int minTileY = (player->position.y - player->size.y / 2) / U_P - GROUND_JUMP_COL_HEIGHT;
@@ -603,32 +615,6 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 	int maxTileY = (entity->position.y + entity->size.y) / U_P;
 	maxTileY = clamp(maxTileY, 0, TILES_Y);
 
-	if (entityOnScreen(entity))
-	{
-		// check if entity is buried in many tiles
-		int overlappingTiles = 0;
-		for (int y = minTileY; y < maxTileY; y++)
-		{
-			for (int x = minTileX; x < maxTileX; x++)
-			{
-				currTile = tiles[y][x];
-				if (currTile != nullptr)
-				{
-					if (currTile->material != WATER)
-						overlappingTiles++;
-					else
-						entity->inWater = true;
-				}
-			}
-		}
-
-		// if more than x% of entity is buried in tiles, push them up
-		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.8)
-		{
-			entity->position.y += entity->size.y;
-		}
-	}
-
 	bool damaged = false;
 
 	// iterating over tiles in entity's vicinity, checking for collision
@@ -735,6 +721,32 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 			}
 		}
 	}
+
+	if (entityOnScreen(entity))
+	{
+		// check if entity is buried in many tiles
+		int overlappingTiles = 0;
+		for (int y = minTileY; y < maxTileY; y++)
+		{
+			for (int x = minTileX; x < maxTileX; x++)
+			{
+				currTile = tiles[y][x];
+				if (currTile != nullptr)
+				{
+					if (currTile->material != WATER)
+						overlappingTiles++;
+					else
+						entity->inWater = true;
+				}
+			}
+		}
+
+		// if more than x% of entity is buried in tiles, push them up
+		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.8)
+		{
+			entity->position.y += entity->size.y;
+		}
+	}
 }
 
 void EntityManager::checkPlayerTileCollision()
@@ -758,32 +770,7 @@ void EntityManager::checkPlayerTileCollision()
 	int maxTileY = (player->position.y + player->size.y) / U_P;
 	if (maxTileY > TILES_Y)
 		maxTileY = TILES_Y;
-
-	if (entityOnScreen(player))
-	{
-		// check if player is buried in many tiles
-		int overlappingTiles = 0;
-		for (int y = minTileY; y < maxTileY; y++)
-		{
-			for (int x = minTileX; x < maxTileX; x++)
-			{
-				currTile = tiles[y][x];
-				if (currTile != nullptr)
-				{
-					if (currTile->material != WATER)
-						overlappingTiles++;
-					else
-						player->inWater = true;
-				}
-			}
-		}
-
-		// if more than x% of player is buried in tiles, push them up
-		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
-		{
-			player->position.y += player->size.y;
-		}
-	}
+		
 
 	// iterating over tiles in player's vicinity, checking for collision
 	for (int y = minTileY; y < maxTileY; y++)
@@ -875,6 +862,31 @@ void EntityManager::checkPlayerTileCollision()
 					}
 				}
 			}
+		}
+	}
+	if (entityOnScreen(player))
+	{
+		// check if player is buried in many tiles
+		int overlappingTiles = 0;
+		for (int y = minTileY; y < maxTileY; y++)
+		{
+			for (int x = minTileX; x < maxTileX; x++)
+			{
+				currTile = tiles[y][x];
+				if (currTile != nullptr)
+				{
+					if (currTile->material != WATER)
+						overlappingTiles++;
+					else
+						player->inWater = true;
+				}
+			}
+		}
+
+		// if more than x% of player is buried in tiles, push them up
+		if (overlappingTiles > (maxTileX - minTileX) * (maxTileY - minTileY) * 0.7)
+		{
+			player->position.y += player->size.y;
 		}
 	}
 }

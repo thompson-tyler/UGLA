@@ -3,11 +3,12 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 
-Enemy::Enemy(float x, float y, sf::RectangleShape sprite) :
+Enemy::Enemy(float x, float y, sf::RectangleShape sprite, int health) :
 	Entity(x, y, sprite)
 {
-	this->sprite.setFillColor(sf::Color::Red);
-	this->health = 100;
+	this->sprite.setFillColor(sf::Color::Cyan);
+	this->health = health;
+	this->maxHealth = health;
 	this->target = nullptr;
 }
 
@@ -123,18 +124,36 @@ void Enemy::render(sf::RenderWindow& window)
 {
 	this->sprite.setPosition(centerAsSFMLCoords());
 
-	int r = -health / 100.f * 255;
-	if (r < 0)
-		r = 0;
-	if (r > 255)
-		r = 255;
-
-	int g = health / 100.f * 255;
-	if (g < 0)
-		g = 0;
-	if (g > 255)
-		g = 255;
-	this->sprite.setFillColor(sf::Color(r, g, 0));
-
 	window.draw(this->sprite);
+
+	sf::RectangleShape healthBarBackground({ HEALTH_BAR_WIDTH, 5 });
+	healthBarBackground.setFillColor(sf::Color::White);
+	healthBarBackground.setOrigin(healthBarBackground.getSize().x / 2, healthBarBackground.getSize().y / 2);
+	sf::Vector2f barPos = centerAsSFMLCoords();
+	barPos.y -= this->size.y / 2 + 20;
+	healthBarBackground.setPosition(barPos);
+
+	window.draw(healthBarBackground);
+
+	sf::RectangleShape healthBar({ (1.f * this->health / this->maxHealth) * HEALTH_BAR_WIDTH, 5 });
+	healthBar.setOutlineColor(sf::Color::Black);
+	healthBar.setFillColor(sf::Color::Red);
+	healthBar.setOrigin(healthBar.getSize().x / 2, healthBar.getSize().y / 2);
+	barPos = centerAsSFMLCoords();
+	barPos.y -= this->size.y / 2 + 20;
+	barPos.x += (healthBar.getSize().x - HEALTH_BAR_WIDTH) * 0.5f;
+	healthBar.setPosition(barPos);
+
+	window.draw(healthBar);
+
+	sf::RectangleShape healthBarOutline({ HEALTH_BAR_WIDTH, 5 });
+	healthBarOutline.setOutlineColor(sf::Color::Black);
+	healthBarOutline.setOutlineThickness(1);
+	healthBarOutline.setFillColor(sf::Color::Transparent);
+	healthBarOutline.setOrigin(healthBarOutline.getSize().x / 2, healthBarOutline.getSize().y / 2);
+	barPos = centerAsSFMLCoords();
+	barPos.y -= this->size.y / 2 + 20;
+	healthBarOutline.setPosition(barPos);
+
+	window.draw(healthBarOutline);
 }

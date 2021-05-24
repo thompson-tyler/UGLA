@@ -19,7 +19,7 @@ public:
 	bool onGround;
 	bool inWater;
 	bool facingRight;
-	int health;
+	int health, maxHealth;
 
 	sf::Texture texture;
 	sf::IntRect rectSourceSprite;

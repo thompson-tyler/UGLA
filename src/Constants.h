@@ -19,6 +19,7 @@ const static sf::Keyboard::Key JUMP_KEY = sf::Keyboard::W,
 							   ZOOM_OUT_KEY = sf::Keyboard::Hyphen,
 							   ZOOM_IN_KEY = sf::Keyboard::Equal,
 							   EXIT_KEY = sf::Keyboard::Escape;
+const static float HEALTH_BAR_WIDTH = 50.f;
 
 // PLAYER CONSTS
 

@@ -6,7 +6,7 @@
 class Enemy : public Entity
 {
 public:
-	Enemy(float x, float y, sf::RectangleShape sprite);
+	Enemy(float x, float y, sf::RectangleShape sprite, int health);
 	void update(float dt);
 	void render(sf::RenderWindow& window);
 	void setTarget(Entity* target);
