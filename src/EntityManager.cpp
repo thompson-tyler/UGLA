@@ -37,7 +37,7 @@ EntityManager::EntityManager()
 	updateTimer = 0;
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
-	viewScale = 1;
+	viewScale = 0.5;
 
 	srand(time(NULL));
 
@@ -200,7 +200,7 @@ void EntityManager::groundJump()
 		int minTileX = (player->position.x - player->size.x / 2) / U_P;
 		minTileX = clamp(minTileX, 0, TILES_X);
 
-		int maxTileX = (player->position.x + player->size.x) / U_P;
+		int maxTileX = (player->position.x + player->size.x / 2) / U_P;
 		maxTileX = clamp(maxTileX, 0, TILES_X);
 
 		int minTileY = (player->position.y - player->size.y / 2) / U_P - GROUND_JUMP_COL_HEIGHT;

@@ -4,7 +4,7 @@
 const static float U_P = 8.f;
 const static int TILES_X = 200, TILES_Y = 150;
 const static sf::Vector2f WORLD_SIZE { TILES_X * U_P, TILES_Y* U_P };
-const static sf::Vector2f WIN_SIZE { 800.f, 600.f };
+const static sf::Vector2f WIN_SIZE { 1200.f, 800.f };
 const static float FRAME_DURATION = 1 / 60.f,
 				   UPDATE_DURATION = 1 / 60.f,
 				   GRAV_CHECK_DURATION = 1 / 30.f;
@@ -23,6 +23,7 @@ const static sf::Keyboard::Key JUMP_KEY = sf::Keyboard::W,
 // PLAYER CONSTS
 
 // speeds in x per second
+const sf::Vector2f PLAYER_SPRITE_SHEET_SIZE = { 32, 32 };
 const sf::Vector2f PLAYER_SPRITE_SIZE = { 32, 32 };
 const sf::Vector2f PLAYER_HITBOX_SIZE = { 20, 30 };
 const float MAX_HORIZONTAL_SPEED = 32.f * U_P,

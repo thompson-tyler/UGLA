@@ -12,7 +12,7 @@ Player::Player() :
 
 	// this->sprite.setFillColor(PLAYER_COLOR);
 	texture.loadFromFile("content/adventurer_sheet.png");
-	rectSourceSprite = { 0, 0, (int)PLAYER_SPRITE_SIZE.x, (int)PLAYER_SPRITE_SIZE.y };
+	rectSourceSprite = { 0, 0, (int)PLAYER_SPRITE_SHEET_SIZE.x, (int)PLAYER_SPRITE_SHEET_SIZE.y };
 
 	this->sprite.setTexture(&texture);
 	sprite.setTextureRect(rectSourceSprite);
@@ -23,28 +23,45 @@ void Player::render(sf::RenderWindow& window)
 {
 	if (!onGround)
 	{
-		if (isDiving)
+		rectSourceSprite.top = 2 * PLAYER_SPRITE_SHEET_SIZE.y;
+
+		if (velocity.y > JUMP_VEL / 2)
 		{
 			rectSourceSprite.left = 0;
-			rectSourceSprite.top = 0;
+		}
+		else if (velocity.y > 0)
+		{
+			rectSourceSprite.left = PLAYER_SPRITE_SHEET_SIZE.x;
 		}
 		else
 		{
-			rectSourceSprite.left = 0;
-			rectSourceSprite.top = 0;
+			if (rectSourceSprite.left < PLAYER_SPRITE_SHEET_SIZE.x * 2)
+				rectSourceSprite.left = PLAYER_SPRITE_SHEET_SIZE.x * 2;
+
+			if (animClock.getElapsedTime().asSeconds() > 0.1f)
+			{
+				rectSourceSprite.left += PLAYER_SPRITE_SHEET_SIZE.x;
+
+				animClock.restart();
+			}
+
+			if (rectSourceSprite.left >= 4 * PLAYER_SPRITE_SHEET_SIZE.x)
+				rectSourceSprite.left = 2 * PLAYER_SPRITE_SHEET_SIZE.x;
 		}
 	}
 	// runnning animation
 	else if (moving)
 	{
-		rectSourceSprite.top = PLAYER_SPRITE_SIZE.y;
+		rectSourceSprite.top = PLAYER_SPRITE_SHEET_SIZE.y;
+
 		if (animClock.getElapsedTime().asSeconds() > 0.1f)
 		{
-			rectSourceSprite.left += PLAYER_SPRITE_SIZE.x;
+			rectSourceSprite.left += PLAYER_SPRITE_SHEET_SIZE.x;
 
 			animClock.restart();
 		}
-		if (rectSourceSprite.left >= PLAYER_SPRITE_SIZE.x * 6)
+
+		if (rectSourceSprite.left >= 6 * PLAYER_SPRITE_SHEET_SIZE.x)
 			rectSourceSprite.left = 0;
 	}
 	// idle animation
@@ -53,11 +70,11 @@ void Player::render(sf::RenderWindow& window)
 		rectSourceSprite.top = 0;
 		if (animClock.getElapsedTime().asSeconds() > 0.25f)
 		{
-			rectSourceSprite.left += PLAYER_SPRITE_SIZE.x;
+			rectSourceSprite.left += PLAYER_SPRITE_SHEET_SIZE.x;
 
 			animClock.restart();
 		}
-		if (rectSourceSprite.left >= PLAYER_SPRITE_SIZE.x * 4)
+		if (rectSourceSprite.left >= 4 * PLAYER_SPRITE_SHEET_SIZE.x)
 			rectSourceSprite.left = 0;
 	}
 
@@ -74,6 +91,7 @@ void Player::render(sf::RenderWindow& window)
 	window.draw(this->sprite);
 
 	// debug hitbox rendering
+	return;
 	sf::RectangleShape hitboxOutline(this->size);
 	hitboxOutline.setOrigin(size.x / 2, size.y / 2);
 	hitboxOutline.setPosition(centerAsSFMLCoords());
