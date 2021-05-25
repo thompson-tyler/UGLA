@@ -441,9 +441,18 @@ void EntityManager::switchTiles(int x1, int y1, int x2, int y2)
 
 void EntityManager::doBlockUpdates()
 {
+	float viewWidth = WIN_SIZE.x * viewScale;
+	float viewCenter = player->position.x;
+	viewCenter = clamp(viewCenter, viewWidth / 2, WORLD_SIZE.x - viewWidth / 2);
+
+	int minX = (viewCenter - viewWidth / 2) / U_P - 8;
+	minX = clamp(minX, 0, TILES_X);
+	int maxX = (viewCenter + viewWidth / 2) / U_P + 8;
+	maxX = clamp(maxX, 0, TILES_X);
+
 	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < TILES_X; x++)
+		for (int x = minX; x < maxX; x++)
 		{
 			if (tiles[y][x] != nullptr)
 			{
@@ -455,7 +464,7 @@ void EntityManager::doBlockUpdates()
 	// gravity check
 	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < TILES_X; x++)
+		for (int x = minX; x < maxX; x++)
 		{
 			Tile* currTile = tiles[y][x];
 			if (currTile != nullptr and currTile->velocity.x == 0 and currTile->velocity.y <= 0)
@@ -472,7 +481,7 @@ void EntityManager::doBlockUpdates()
 	// stopping check
 	for (int y = 1; y < TILES_Y; y++)
 	{
-		for (int x = 0; x < TILES_X; x++)
+		for (int x = minX; x < maxX; x++)
 		{
 			Tile* currTile = tiles[y][x];
 			if (currTile != nullptr)
@@ -526,7 +535,7 @@ void EntityManager::doBlockUpdates()
 
 		for (int y = 1; y < TILES_Y; y++)
 		{
-			for (int x = 0; x < TILES_X; x++)
+			for (int x = minX; x < maxX; x++)
 			{
 				Tile* currTile = tiles[y][x];
 				if (currTile != nullptr)
@@ -655,7 +664,7 @@ void EntityManager::checkEntityTileCollision(Entity* entity)
 								// makes sure there is room for the entity above step
 								for (int i = 1; i <= entity->size.y / U_P; i++)
 								{
-									if (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER)
+									if (!validPos(x, y + i) or (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER))
 									{
 										canStep = false;
 										break;
@@ -770,7 +779,6 @@ void EntityManager::checkPlayerTileCollision()
 	int maxTileY = (player->position.y + player->size.y) / U_P;
 	if (maxTileY > TILES_Y)
 		maxTileY = TILES_Y;
-		
 
 	// iterating over tiles in player's vicinity, checking for collision
 	for (int y = minTileY; y < maxTileY; y++)
@@ -810,7 +818,7 @@ void EntityManager::checkPlayerTileCollision()
 								// makes sure there is room for the player above step
 								for (int i = 1; i <= player->size.y / U_P; i++)
 								{
-									if (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER)
+									if (!validPos(x, y + i) or (tiles[y + i][x] != nullptr and tiles[y + i][x]->material != WATER))
 									{
 										canStep = false;
 										break;

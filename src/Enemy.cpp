@@ -113,7 +113,12 @@ void Enemy::update(float dt)
 		velocity.x = 0;
 	}
 
-	if (position.y < size.y / 2)
+	if (position.y > WORLD_SIZE.y - size.y / 2)
+	{
+		position.y = WORLD_SIZE.y - size.y / 2;
+		velocity.y = 0;
+	}
+	else if (position.y < size.y / 2)
 	{
 		position.y = size.y / 2;
 		velocity.y = 0;

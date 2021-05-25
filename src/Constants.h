@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 const static float U_P = 8.f;
-const static int TILES_X = 200, TILES_Y = 150;
+const static int TILES_X = 1600, TILES_Y = 150;
 const static sf::Vector2f WORLD_SIZE { TILES_X * U_P, TILES_Y* U_P };
 const static sf::Vector2f WIN_SIZE { 1200.f, 800.f };
 const static float FRAME_DURATION = 1 / 60.f,
