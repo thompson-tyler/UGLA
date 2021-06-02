@@ -12,6 +12,7 @@ public:
 	void setTarget(Entity* target);
 	void moveRight(float dt);
 	void moveLeft(float dt);
+	void respawn();
 
 private:
 	Entity* target;

@@ -162,3 +162,9 @@ void Enemy::render(sf::RenderWindow& window)
 
 	window.draw(healthBarOutline);
 }
+
+void Enemy::respawn()
+{
+	this->health = this->maxHealth;
+	this->position = { WORLD_SIZE.x / 2.f, WORLD_SIZE.y * 0.75f };
+}

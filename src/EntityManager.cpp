@@ -76,8 +76,7 @@ void EntityManager::update(float dt)
 
 			if (enemy->health <= 0)
 			{
-				delete enemy;
-				enemy = nullptr;
+				enemy->respawn();
 			}
 		}
 
