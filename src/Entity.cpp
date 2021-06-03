@@ -30,10 +30,11 @@ void Entity::render(sf::RenderWindow& window)
 
 void Entity::jump()
 {
-	if (onGround or inWater)
-	{
+	if (onGround)
 		velocity.y = JUMP_VEL;
-	}
+
+	else if (inWater)
+		velocity.y = JUMP_VEL / 2;
 }
 
 void Entity::damage(int amount, sf::Vector2f knockback)

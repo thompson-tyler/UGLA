@@ -94,8 +94,8 @@ void Enemy::update(float dt)
 
 	if (inWater)
 	{
-		velocity.x *= 0.9;
-		velocity.y *= 0.9;
+		velocity.x *= WATER_X_COEFF;
+		velocity.y *= WATER_Y_COEFF;
 	}
 
 	position += velocity * dt;

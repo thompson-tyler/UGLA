@@ -4,7 +4,7 @@
 #include <cmath>
 
 Player::Player() :
-	Entity(WORLD_SIZE.x / 2, WORLD_SIZE.y / 2, sf::RectangleShape(PLAYER_SPRITE_SIZE), PLAYER_HITBOX_SIZE)
+	Entity(WORLD_SIZE.x / 3, 0, sf::RectangleShape(PLAYER_SPRITE_SIZE), PLAYER_HITBOX_SIZE)
 {
 	isDiving = false;
 	moving = false;
@@ -180,8 +180,8 @@ void Player::update(float dt)
 
 	if (inWater)
 	{
-		velocity.x *= 0.9;
-		velocity.y *= 0.9;
+		velocity.x *= WATER_X_COEFF;
+		velocity.y *= WATER_Y_COEFF;
 	}
 
 	position += velocity * dt;

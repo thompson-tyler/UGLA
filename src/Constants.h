@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 const static float U_P = 8.f;
-const static int TILES_X = 1600, TILES_Y = 150;
+const static int TILES_X = 512, TILES_Y = 150;
 const static sf::Vector2f WORLD_SIZE { TILES_X * U_P, TILES_Y* U_P };
 const static sf::Vector2f WIN_SIZE { 1200.f, 800.f };
 const static float FRAME_DURATION = 1 / 60.f,
@@ -44,11 +44,14 @@ const static int RIPPLE_THICKNESS = 8;
 const static int RAISE_BOULDER_SIZE = 5;
 const static float PUSH_VELOCITY = 20.f;
 
+const static float WATER_X_COEFF = 0.85f,
+				   WATER_Y_COEFF = 0.9f;
+
 // COLORS
 const static sf::Color BACKGROUND_COLOR = sf::Color(244, 233, 205),
 					   PLAYER_COLOR = sf::Color(151, 77, 65),
 					   STONE_COLOR = sf::Color(75, 78, 75),
 					   SAND_COLOR = sf::Color(218, 181, 107),
-					   WATER_COLOR = sf::Color(74, 136, 217, 50);
+					   WATER_COLOR = sf::Color(74, 136, 217, 80);
 
 #endif

@@ -11,25 +11,28 @@ EntityManager::EntityManager()
 	{
 		for (int x = 0; x < TILES_X; x++)
 		{
+			Material material = NONE;
 			// if (y < 2 + pow(x - TILES_X / 2, 2) / 30)
 			// if (y < 10 or (y > x * x / 100 + 10 and y < x * x / 20 and y < TILES_Y - 5 and x > 30))
 			// if (y < 10 * sin(x / 10.f) + 50)
-			if (y < 5 * sin(x / 5.f) + pow(x - TILES_X / 2, 2) / TILES_X + 50)
+			if (y <= 32 - 256 * sin((x - TILES_X / 2.f) / 10) / (x - TILES_X / 2.f) or (x == TILES_X / 2 and y < 7))
 			// if (y < 50)
 			{
-				if (y % 30 < 15)
-					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), SAND };
+				// if (y % 30 < 16)
+				if (y <= 16 + 1200 * sin((x - TILES_X / 2.f) / 20) / (x - TILES_X / 2.f) or (x == TILES_X / 2 and y < 7))
+					material = SAND;
 				else
-					tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), STONE };
+					material = STONE;
 			}
-			else if (pow(x - TILES_X / 2 - 18, 2) + pow(y - TILES_Y / 2 - 20, 2) < pow(8, 2))
+			else if (y < 35 and x > 216 and x < 295)
 			{
-				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), WATER };
+				material = WATER;
 			}
+
+			if (material != NONE)
+				tiles[y][x] = new Tile { U_P * (x + 0.5f), U_P * (y + 0.5f), material };
 			else
-			{
 				tiles[y][x] = nullptr;
-			}
 		}
 	}
 	initTileColors();
