@@ -1,11 +1,11 @@
-#ifndef EntityManager_H
+#ifndef ENTITYMANAGER_H
 #include <Constants.h>
 #include <Enemy.h>
 #include <Entity.h>
 #include <Player.h>
 #include <SFML/Window.hpp>
 #include <Tile.h>
-#define EntityManager_H
+#define ENTITYMANAGER_H
 
 class EntityManager
 {

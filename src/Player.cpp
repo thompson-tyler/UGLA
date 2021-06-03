@@ -10,7 +10,6 @@ Player::Player() :
 	moving = false;
 	this->health = 20;
 
-	// this->sprite.setFillColor(PLAYER_COLOR);
 	texture.loadFromFile("content/adventurer_sheet.png");
 	rectSourceSprite = { 0, 0, (int)PLAYER_SPRITE_SHEET_SIZE.x, (int)PLAYER_SPRITE_SHEET_SIZE.y };
 

@@ -37,7 +37,7 @@ EntityManager::EntityManager()
 	updateTimer = 0;
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
-	viewScale = 0.5;
+	viewScale = 1;
 
 	srand(time(NULL));
 

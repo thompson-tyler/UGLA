@@ -1,3 +1,4 @@
+#include <BackgroundManager.h>
 #include <Constants.h>
 #include <EntityManager.h>
 #include <GameObject.h>
@@ -18,6 +19,8 @@ int main()
 
 	EntityManager eMan;
 	eMan.setPlayer(player);
+
+	BackgroundManager bMan;
 
 	sf::Clock timer;
 	float renderTime = 0;
@@ -86,6 +89,8 @@ int main()
 
 			// clear window with background color
 			window.clear(BACKGROUND_COLOR);
+
+			bMan.render(window, (WORLD_SIZE.x / 2 - player.position.x) * 0.01f);
 
 			// render game objects
 			eMan.render(window);
