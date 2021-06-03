@@ -37,7 +37,7 @@ EntityManager::EntityManager()
 	updateTimer = 0;
 	blockGravTimer = 0;
 	currRipple = { 0, 0, -1 };
-	viewScale = 1;
+	viewScale = 0.5;
 
 	srand(time(NULL));
 
@@ -143,17 +143,14 @@ void EntityManager::render(sf::RenderWindow& window)
 void EntityManager::zoomIn()
 {
 	viewScale -= 0.1f;
-	if (viewScale < 0.2)
-		viewScale = 0.2f;
+	viewScale = clamp(viewScale, MIN_ZOOM, MAX_ZOOM);
 }
 
 void EntityManager::zoomOut()
 {
 	viewScale += 0.1f;
-	if (WIN_SIZE.x * viewScale > WORLD_SIZE.x)
-		viewScale = WORLD_SIZE.x / WIN_SIZE.x;
-	if (WIN_SIZE.y * viewScale > WORLD_SIZE.y)
-		viewScale = WORLD_SIZE.y / WIN_SIZE.y;
+	viewScale = clamp(viewScale, MIN_ZOOM, fmin(WORLD_SIZE.x / WIN_SIZE.x, MAX_ZOOM));
+	viewScale = clamp(viewScale, MIN_ZOOM, fmin(WORLD_SIZE.y / WIN_SIZE.y, MAX_ZOOM));
 }
 
 void EntityManager::setPlayer(Player& player)
