@@ -25,6 +25,8 @@ int main()
 	sf::Clock timer;
 	float renderTime = 0;
 
+	bool paused = false;
+
 	while (window.isOpen())
 	{
 		// event handling
@@ -67,6 +69,9 @@ int main()
 						case EXIT_KEY:
 							window.close();
 							break;
+						case PAUSE_KEY:
+							paused = !paused;
+							break;
 						default:
 							break;
 					}
@@ -77,26 +82,33 @@ int main()
 			}
 		}
 
-		// update game objects
-		eMan.update(timer.getElapsedTime().asSeconds());
-
-		// render to screen at max of 60 fps
-		renderTime += timer.restart().asSeconds();
-
-		if (renderTime > FRAME_DURATION)
+		if (!paused)
 		{
-			renderTime -= FRAME_DURATION;
+			// update game objects
+			eMan.update(timer.getElapsedTime().asSeconds());
 
-			// clear window with background color
-			window.clear(BACKGROUND_COLOR);
+			// render to screen at max of 60 fps
+			renderTime += timer.restart().asSeconds();
 
-			bMan.render(window, (WORLD_SIZE.x / 2 - player.position.x) * 0.01f);
+			if (renderTime > FRAME_DURATION)
+			{
+				renderTime -= FRAME_DURATION;
 
-			// render game objects
-			eMan.render(window);
+				// clear window with background color
+				window.clear(BACKGROUND_COLOR);
 
-			// end and display frame
-			window.display();
+				bMan.render(window, (WORLD_SIZE.x / 2 - player.position.x) * 0.01f);
+
+				// render game objects
+				eMan.render(window);
+
+				// end and display frame
+				window.display();
+			}
+		}
+		else
+		{
+			timer.restart();
 		}
 	}
 
